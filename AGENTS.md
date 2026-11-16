@@ -182,7 +182,7 @@ Official sources / local PDFs
                  Hybrid RRF
                         |
                         v
-               Optional reranker
+               Optional CPU/ONNX reranker
                         |
                         v
          Evidence selection + validation
@@ -202,7 +202,8 @@ Official sources / local PDFs
 - `dense_top_k`: 20
 - `bm25_top_k`: 20
 - `rrf_k`: 60
-- `rerank_top_k`: 5
+- `rerank_candidate_top_k`: 20 kandidat dari hybrid retrieval
+- `rerank_top_k`: 5 hasil setelah reranking
 - `context_top_k`: 4–6 chunk, tergantung panjangnya
 - `similarity_threshold`: jangan tetapkan secara arbitrer tanpa eksperimen; jika dipakai, kalibrasikan pada validation set.
 
@@ -214,33 +215,52 @@ Jangan mengandalkan threshold skor cosine universal antar-model. Mulai dengan ra
 - `PDFExtractor`: ekstraksi teks dan halaman.
 - `LegalStructureParser`: parsing BAB/Pasal/Ayat/Huruf.
 - `Chunker`: membuat chunk dengan struktur dan konteks induk.
-- `DenseRetriever`: embedding dan vector retrieval.
+- `DenseRetriever`: embedding multilingual-e5 dan vector retrieval; konfigurasi model/device terpisah dari lifecycle LLM dan reranker.
 - `BM25Retriever`: lexical retrieval.
 - `HybridRetriever`: gabung hasil dengan RRF.
-- `Reranker`: cross-encoder; bisa dimatikan lewat konfigurasi.
-- `AnswerGenerator`: format prompt dan panggil LLM lokal.
+- `Reranker`: cross-encoder CPU/ONNX yang hanya dimuat saat reranking dipakai; bisa dimatikan lewat konfigurasi.
+- `AnswerGenerator`: format prompt dan panggil LLM lokal melalui Ollama dengan context window yang dapat dikonfigurasi; lifecycle-nya terpisah dari embedding dan reranker.
 - `CitationValidator`: memastikan citation menunjuk ke chunk yang benar-benar diambil.
 - `AbstentionPolicy`: menangani evidence yang tidak cukup.
 - `Evaluator`: menjalankan benchmark dan menghasilkan JSON/CSV.
 
 Jangan membuat satu file Python raksasa berisi semua tanggung jawab.
 
-## 7. Tech stack dan keterbatasan hardware
+## 7. Hardware, model, dan konfigurasi inference
 
-Asumsikan komputer pengembangan dapat memiliki NVIDIA RTX 3050 4 GB VRAM dan 16 GB RAM. Buat semua model configurable dan sediakan jalur CPU fallback.
+Baseline perangkat pengembangan adalah ASUS TUF Gaming FX505GT dengan Intel Core i5-9300H, NVIDIA GeForce GTX 1650 Laptop GPU ber-VRAM 4 GB, dan RAM 16 GB DDR4 dalam konfigurasi 1 × 16 GB (single-channel). Semua model dan device harus configurable, tidak boleh mengasumsikan lebih dari 4 GB VRAM, dan harus tetap memiliki jalur CPU jika CUDA atau GPU offloading tidak tersedia. Jangan menetapkan konfigurasi GPU tetap sebelum mengujinya di laptop target.
+
+Ukuran file model quantized bukan total kebutuhan RAM/VRAM saat inference. Runtime juga memakai memori untuk context/KV cache, workspace, tokenizer, dan proses aplikasi. Jangan memuat embedding, reranker, dan LLM sekaligus sebagai syarat operasi; gunakan lazy loading atau lifecycle yang melepaskan model yang tidak sedang dipakai. Batasi generation ke satu proses bersamaan. Hindari context window besar tanpa kebutuhan yang jelas dan ukur pemakaian aktual.
+
+### Default perangkat dan model
+
+| Komponen | Konfigurasi awal |
+|---|---|
+| LLM | Qwen3 4B Instruct Q4_K_M, Ollama ID `qwen3:4b-instruct-2507-q4_K_M` |
+| LLM inference | Ollama, GPU auto/offloading sesuai runtime, context awal 4096 tokens, satu generation pada satu waktu; CPU atau hybrid CPU/GPU fallback |
+| LLM fallback | Qwen3 1.7B Q4_K_M, Ollama ID `qwen3:1.7b-q4_K_M`, untuk uji memori terbatas |
+| Embedding | `intfloat/multilingual-e5-base` di CPU; fallback `intfloat/multilingual-e5-small` |
+| Reranker | `Horizon-Labs/multilingual-reranker-small`, prioritaskan ONNX INT8 di CPU jika runtime kompatibel; nonaktif secara konfigurasi bila perlu |
+| Vector database | Qdrant local |
+| Keyword retrieval | BM25 |
+
+Per 2026-10-30, Ollama Registry mencantumkan tag LLM utama sebagai quant Q4_K_M dengan ukuran artefak sekitar 2.5 GB dan lisensi Apache-2.0; tag fallback Q4_K_M juga tersedia. Gunakan pull command `ollama pull qwen3:4b-instruct-2507-q4_K_M` untuk utama dan `ollama pull qwen3:1.7b-q4_K_M` untuk fallback. Registry mencantumkan context yang jauh lebih besar untuk model utama, tetapi konfigurasi proyek tetap mulai pada 4096 tokens agar kebutuhan memori terkendali. Sebelum distribusi atau mengunci versi, periksa ulang tag, lisensi, versi Ollama, dan template/model metadata di registry resmi.
+
+Kartu model Hugging Face saat ini mencantumkan lisensi MIT untuk kedua varian multilingual-e5. Gunakan prefix `query: ` untuk pertanyaan dan `passage: ` untuk dokumen, mean pooling serta normalisasi L2 sebagaimana implementasi model, dan buat pilihan model/device dapat diganti tanpa mengubah pipeline lainnya. Bandingkan kualitas retrieval dan waktu inferensi varian base dan small pada benchmark proyek.
+
+Kartu `Horizon-Labs/multilingual-reranker-small` mencantumkan lisensi Apache-2.0 dan artefak ONNX INT8 sekitar 268 MB. Verifikasi ulang model card, lisensi, revision, dependensi dan kompatibilitas ONNX Runtime di laptop target sebelum memilih versi final. Artefak tersedia bukan bukti bahwa inference telah berhasil di perangkat ini. Model ini tidak dilatih khusus untuk regulasi hukum Indonesia; anggap manfaatnya hipotesis yang harus diuji dengan benchmark RegulaRAG.
 
 ### Default yang disarankan
 
 - Python 3.11 atau versi yang kompatibel dengan dependensi terkunci.
 - FastAPI + Pydantic untuk API.
 - PyMuPDF untuk PDF extraction; OCR hanya sebagai fallback jika PDF berupa scan.
-- `sentence-transformers` untuk embedding/reranking.
-- Embedding kandidat: `intfloat/multilingual-e5-base`. Gunakan prefix `query: ` untuk query dan `passage: ` untuk dokumen sesuai ketentuan model.
+- `sentence-transformers` untuk embedding/reranking; mulai embedding dengan `intfloat/multilingual-e5-base` pada CPU dan sediakan `intfloat/multilingual-e5-small` sebagai fallback/pembanding.
 - Vector store: Qdrant lokal atau implementasi lokal lain yang kompatibel.
 - BM25: `rank-bm25` atau implementasi lexical retrieval setara.
 - Fusion: Reciprocal Rank Fusion (RRF).
-- Reranker kandidat: model cross-encoder multibahasa berukuran sesuai hardware, misalnya `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1`; sediakan opsi model multibahasa yang lebih kuat jika memori memungkinkan. Jangan mengunci model tanpa mengecek lisensi, kebutuhan RAM/VRAM, serta hasil uji pada Bahasa Indonesia.
-- LLM: Ollama dengan model instruct open-weight kecil sebagai baseline, misalnya `qwen2.5:3b-instruct` jika tersedia. Periksa lisensi model dan tag Ollama sebelum distribusi; jangan menganggap semua model open-weight mempunyai lisensi open-source yang sama.
+- Reranker kandidat: `Horizon-Labs/multilingual-reranker-small` dengan CPU/ONNX INT8 bila kompatibel; uji lisensi, revision, dependensi, kebutuhan RAM, dan kualitas Bahasa Indonesia/regulasi sebelum memilih versi final.
+- LLM: Ollama dengan `qwen3:4b-instruct-2507-q4_K_M` sebagai utama serta `qwen3:1.7b-q4_K_M` sebagai fallback. Periksa ulang lisensi dan tag registry sebelum distribusi; jangan menganggap semua model open-weight mempunyai lisensi open-source yang sama.
 - UI: Streamlit.
 - Tests: pytest.
 - Quality tools: Ruff; gunakan mypy/pyright jika tidak membebani iterasi.
@@ -266,6 +286,7 @@ Jangan memecah dokumen hanya berdasarkan panjang karakter jika struktur pasal da
 ### Retrieval
 
 - Dense retriever harus melakukan pencarian semantik pada Bahasa Indonesia.
+- Gunakan `intfloat/multilingual-e5-base` sebagai default CPU dan `intfloat/multilingual-e5-small` sebagai fallback/varian pembanding. Gunakan prefix `query: ` dan `passage: `, pertahankan mean pooling serta normalisasi L2 sesuai model, dan buat model serta device dapat diganti melalui konfigurasi.
 - BM25 harus mempertahankan istilah legal, nomor pasal, nomor peraturan, tahun, singkatan, dan frasa persis.
 - Lakukan eksperimen dengan dan tanpa normalisasi query. Jangan buang nomor, kata negasi, istilah hukum, atau angka durasi sebagai stop words.
 - Hybrid search menggunakan RRF agar skor dense dan BM25 yang berbeda skala tidak dijumlahkan mentah.
@@ -274,12 +295,15 @@ Jangan memecah dokumen hanya berdasarkan panjang karakter jika struktur pasal da
 
 ### Reranking
 
-- Gunakan cross-encoder untuk menilai pasangan query–chunk.
-- Jalankan reranking atas kandidat fused, bukan seluruh corpus.
-- Ukur kualitas serta latency; reranking harus bisa dimatikan jika resource terbatas.
+- Gunakan `Horizon-Labs/multilingual-reranker-small` untuk menilai pasangan query–chunk; prioritaskan CPU dengan ONNX INT8 jika kompatibel.
+- Jalankan reranking hanya setelah hybrid retrieval menghasilkan kandidat fused, dengan top 20 kandidat sebagai awal dan hasil top 5.
+- Ukur kualitas serta latency; reranking harus bisa dimatikan jika resource terbatas. Jangan jalankan bersamaan dengan LLM jika pengukuran menunjukkan RAM berlebihan.
+- Anggap kualitas reranker pada regulasi hukum Indonesia sebagai hipotesis yang harus dibuktikan dengan benchmark proyek.
 
 ### Generation
 
+- Gunakan Ollama dengan `qwen3:4b-instruct-2507-q4_K_M` sebagai LLM utama dan context window awal 4096 tokens yang dapat dikonfigurasi. Batasi ke satu generation bersamaan; gunakan GPU auto/offloading tanpa memaksakan full GPU, serta dukung hybrid CPU/GPU dan CPU fallback.
+- Sediakan `qwen3:1.7b-q4_K_M` sebagai fallback untuk uji resource terbatas. Jangan menganggap ukuran quantized file sebagai kebutuhan total inference atau mengklaim full GPU offloading sebelum diuji pada laptop target.
 - Gunakan system prompt yang meminta model menjawab hanya dari evidence yang diberikan.
 - Jika konteks bertentangan atau mencakup dokumen beda periode, tampilkan perbedaan dan tanggal/status yang terverifikasi; jangan menyatukannya menjadi satu aturan.
 - Instruksikan model untuk memisahkan: (a) apa yang dinyatakan sumber, (b) ringkasan/penjelasan sederhana, dan (c) hal yang tidak dapat disimpulkan dari sumber.
@@ -387,8 +411,10 @@ Metrik jawaban dan evidence:
 Metrik operasional:
 
 - Retrieval latency, rerank latency, generation latency, dan end-to-end latency.
-- Peak RAM/VRAM jika dapat diukur.
+- Peak RAM dan VRAM, model loading time, inference latency, dan token generation speed jika dapat diukur; catat pula device, model ID/quantization, context length, versi runtime, serta konfigurasi eksperimen.
 - Ukuran index dan throughput sederhana.
+
+Benchmark hardware minimal harus membandingkan Qwen3 4B Q4_K_M dengan Qwen3 1.7B Q4_K_M, multilingual-e5-base dengan multilingual-e5-small, serta hybrid retrieval tanpa reranker dengan hybrid + reranker. Catat angka aktual untuk RAM/VRAM, loading time, token generation speed bila tersedia, retrieval latency, reranking latency, dan end-to-end latency. Jangan menyimpulkan model berjalan penuh di GPU tanpa hasil pengujian yang membuktikan hal tersebut.
 
 Prinsip evaluasi:
 
@@ -464,8 +490,9 @@ Jangan commit file PDF besar, model weights, secret, atau index vector yang dapa
 - Verifikasi sumber primer UU PDP dan putusan yang menjadi kandidat.
 - Buat `docs/data_sources.md` dan manifest awal.
 - Identifikasi dokumen yang belum terverifikasi; jangan masukkan sebagai dokumen yang dianggap berlaku.
+- Validasi ketersediaan tag, lisensi, revision, dependensi, dan kompatibilitas model terhadap laptop target; catat hal yang baru diuji dan yang masih berupa hipotesis.
 
-**Syarat selesai:** setiap dokumen terdaftar dengan URL dan status verifikasinya, atau secara eksplisit diberi status `unverified`.
+**Syarat selesai:** setiap dokumen terdaftar dengan URL dan status verifikasinya, atau secara eksplisit diberi status `unverified`; pilihan model mempunyai hasil pemeriksaan registry/model card dan rencana uji kompatibilitas laptop.
 
 ### Milestone 1 — Ingestion dan parser
 
@@ -516,6 +543,9 @@ Jangan commit file PDF besar, model weights, secret, atau index vector yang dapa
 Sediakan command yang mudah diketahui, misalnya:
 
 - instalasi dependency dari lock/config.
+- `ollama --version` untuk memeriksa runtime Ollama.
+- `ollama pull qwen3:4b-instruct-2507-q4_K_M` untuk model utama dan `ollama pull qwen3:1.7b-q4_K_M` untuk fallback.
+- `ollama list`, `ollama show qwen3:4b-instruct-2507-q4_K_M`, dan `ollama ps` untuk memeriksa model terpasang, metadata, serta model yang sedang dimuat.
 - `python -m ingestion.build_corpus --manifest data/manifest.jsonl`
 - `python -m evaluation.run_experiments --config configs/default.yaml`
 - `pytest`
@@ -545,6 +575,10 @@ UI harus menampilkan:
 - [ ] Benchmark dan hasil eksperimen dapat direproduksi.
 - [ ] Unit tests berjalan atau kegagalannya dilaporkan secara jujur.
 - [ ] Setup lokal dan lisensi model didokumentasikan.
+- [ ] Pipeline dapat dijalankan tanpa mengasumsikan VRAM lebih dari 4 GB, membatasi generation bersamaan menjadi satu, dan menyediakan CPU fallback.
+- [ ] Model embedding/reranker/LLM tidak wajib dimuat bersamaan; lifecycle atau lazy loading membatasi penggunaan memori.
+- [ ] Benchmark mencatat model ID/quantization, device, context length, RAM/VRAM, waktu loading, retrieval/reranking/inference/end-to-end latency, serta token speed jika tersedia.
+- [ ] Kompatibilitas GPU offloading, CPU fallback, embedding, dan ONNX reranker pada laptop target dilaporkan berdasarkan hasil nyata; tidak ada klaim full GPU tanpa bukti.
 - [ ] README memuat keterbatasan corpus, tanggal verifikasi, dan disclaimer hukum.
 - [ ] Tidak ada secret, data pribadi, atau dokumen dengan hak distribusi yang tidak jelas di repository.
 

@@ -8,5 +8,10 @@ version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = ["PyMuPDF==1.26.5", "fastapi==0.162.0", "uvicorn==0.53.0"]
 
+[project.optional-dependencies]
+dense = ["sentence-transformers==5.1.2"]
+ui = ["streamlit==1.66.1"]
+rerank = ["onnxruntime==1.31.1", "transformers==4.57.6"]
+
 [tool.setuptools.packages.find]
 include = ["app*", "ingestion*"]

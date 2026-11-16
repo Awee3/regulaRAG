@@ -1,0 +1,2201 @@
+{
+  "generated_at_utc": "2026-11-02T15:53:21.684915+00:00",
+  "dataset": "D:\\regulaRAG\\evaluation\\dataset\\retrieval_sample.jsonl",
+  "question_count": 20,
+  "split_counts": {
+    "dev": 14,
+    "holdout": 6
+  },
+  "chunk_count": 298,
+  "chunks_sha256": "ed48dbb15eaecc2650f0c7cc554e8c194ccc9ff145d3934bd2c93cfd70528af1",
+  "dense_model": "intfloat/multilingual-e5-base",
+  "dense_device": "cpu",
+  "candidate_k": 20,
+  "reranker_model": "Horizon-Labs/multilingual-reranker-small",
+  "reranker_revision": "d35a2781eeb3de1d971ad328165277bdf5712e35",
+  "reranker_onnx_max_length": 384,
+  "reranker_device": "CPUExecutionProvider",
+  "warmup_model_and_passage_embedding_seconds": 174.68,
+  "reranker_model_and_first_pass_warmup_seconds": 11.65,
+  "selection_metric": "dev MRR@10, tie-break Recall@5",
+  "baseline_config": {
+    "rrf_k": 60,
+    "dense_weight": 1.0,
+    "bm25_weight": 1.0
+  },
+  "current_config": {
+    "rrf_k": 10,
+    "dense_weight": 2.0,
+    "bm25_weight": 1.0
+  },
+  "selected_config": {
+    "rrf_k": 10,
+    "dense_weight": 2.0,
+    "bm25_weight": 1.0
+  },
+  "dev_tuning": [
+    {
+      "rrf_k": 10,
+      "dense_weight": 2.0,
+      "recall_at_5": 0.7380952380952381,
+      "mrr_at_10": 0.6160714285714286
+    },
+    {
+      "rrf_k": 10,
+      "dense_weight": 1.5,
+      "recall_at_5": 0.7142857142857143,
+      "mrr_at_10": 0.5972222222222222
+    },
+    {
+      "rrf_k": 30,
+      "dense_weight": 2.0,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5471938775510204
+    },
+    {
+      "rrf_k": 30,
+      "dense_weight": 1.5,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5459183673469388
+    },
+    {
+      "rrf_k": 60,
+      "dense_weight": 1.5,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5459183673469388
+    },
+    {
+      "rrf_k": 60,
+      "dense_weight": 2.0,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5459183673469388
+    },
+    {
+      "rrf_k": 100,
+      "dense_weight": 1.5,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5459183673469388
+    },
+    {
+      "rrf_k": 100,
+      "dense_weight": 2.0,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5459183673469388
+    },
+    {
+      "rrf_k": 10,
+      "dense_weight": 1.0,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5399659863945578
+    },
+    {
+      "rrf_k": 30,
+      "dense_weight": 1.0,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5250850340136054
+    },
+    {
+      "rrf_k": 60,
+      "dense_weight": 1.0,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5250850340136054
+    },
+    {
+      "rrf_k": 100,
+      "dense_weight": 1.0,
+      "recall_at_5": 0.6428571428571429,
+      "mrr_at_10": 0.5250850340136054
+    },
+    {
+      "rrf_k": 10,
+      "dense_weight": 0.75,
+      "recall_at_5": 0.5714285714285714,
+      "mrr_at_10": 0.5099206349206349
+    },
+    {
+      "rrf_k": 30,
+      "dense_weight": 0.75,
+      "recall_at_5": 0.5714285714285714,
+      "mrr_at_10": 0.48214285714285715
+    },
+    {
+      "rrf_k": 60,
+      "dense_weight": 0.75,
+      "recall_at_5": 0.5714285714285714,
+      "mrr_at_10": 0.48214285714285715
+    },
+    {
+      "rrf_k": 100,
+      "dense_weight": 0.75,
+      "recall_at_5": 0.5714285714285714,
+      "mrr_at_10": 0.48214285714285715
+    },
+    {
+      "rrf_k": 10,
+      "dense_weight": 0.5,
+      "recall_at_5": 0.5714285714285714,
+      "mrr_at_10": 0.4642857142857143
+    },
+    {
+      "rrf_k": 30,
+      "dense_weight": 0.5,
+      "recall_at_5": 0.5714285714285714,
+      "mrr_at_10": 0.4642857142857143
+    },
+    {
+      "rrf_k": 60,
+      "dense_weight": 0.5,
+      "recall_at_5": 0.5714285714285714,
+      "mrr_at_10": 0.4642857142857143
+    },
+    {
+      "rrf_k": 100,
+      "dense_weight": 0.5,
+      "recall_at_5": 0.5714285714285714,
+      "mrr_at_10": 0.4642857142857143
+    }
+  ],
+  "summary": {
+    "dev": {
+      "bm25": {
+        "recall_at_5": 0.42857142857142855,
+        "mrr_at_10": 0.4
+      },
+      "dense": {
+        "recall_at_5": 0.7380952380952381,
+        "mrr_at_10": 0.6423469387755102
+      },
+      "hybrid_baseline": {
+        "recall_at_5": 0.6428571428571429,
+        "mrr_at_10": 0.5250850340136054
+      },
+      "hybrid_tuned": {
+        "recall_at_5": 0.7380952380952381,
+        "mrr_at_10": 0.6160714285714286
+      },
+      "hybrid_rerank": {
+        "recall_at_5": 0.9285714285714286,
+        "mrr_at_10": 0.8125
+      },
+      "mean_latency_seconds": {
+        "bm25": 0.05558452142850001,
+        "dense": 0.11195550714286842,
+        "hybrid_fusion": 8.640714297923426e-05,
+        "reranker": 7.311827457142629
+      }
+    },
+    "holdout": {
+      "bm25": {
+        "recall_at_5": 0.8333333333333334,
+        "mrr_at_10": 0.5138888888888888
+      },
+      "dense": {
+        "recall_at_5": 0.8333333333333334,
+        "mrr_at_10": 0.8611111111111112
+      },
+      "hybrid_baseline": {
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.7222222222222222
+      },
+      "hybrid_tuned": {
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.9166666666666666
+      },
+      "hybrid_rerank": {
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.6666666666666666
+      },
+      "mean_latency_seconds": {
+        "bm25": 0.054801166666038625,
+        "dense": 0.12007076666698897,
+        "hybrid_fusion": 0.00010276666641099534,
+        "reranker": 6.809646183333219
+      }
+    }
+  },
+  "questions": [
+    {
+      "question_id": "Q01",
+      "split": "dev",
+      "question": "Apa yang dimaksud dengan Data Pribadi?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:1"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:96",
+          "MK_151_PUU_XXII_2024:page:102",
+          "MK_151_PUU_XXII_2024:page:35",
+          "MK_151_PUU_XXII_2024:page:107",
+          "MK_151_PUU_XXII_2024:page:77",
+          "MK_151_PUU_XXII_2024:page:70",
+          "MK_151_PUU_XXII_2024:page:30",
+          "MK_151_PUU_XXII_2024:page:36",
+          "MK_151_PUU_XXII_2024:page:109",
+          "UU_27_2022:explanation:article:3"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:1",
+          "MK_151_PUU_XXII_2024:page:79",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:20",
+          "UU_27_2022:article:16",
+          "UU_27_2022:article:4",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:84",
+          "UU_27_2022:article:33",
+          "UU_27_2022:article:24"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.051265300000522984,
+        "dense": 0.10736850000103004,
+        "hybrid_fusion": 8.309999975608662e-05,
+        "reranker": 7.076825000000099
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:explanation:article:26",
+          "MK_151_PUU_XXII_2024:page:96",
+          "UU_27_2022:article:1",
+          "MK_151_PUU_XXII_2024:page:102",
+          "MK_151_PUU_XXII_2024:page:79",
+          "MK_151_PUU_XXII_2024:page:35",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:107",
+          "MK_151_PUU_XXII_2024:page:20",
+          "MK_151_PUU_XXII_2024:page:77"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.3333333333333333,
+        "first_relevant_rank": 3
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:1",
+          "MK_151_PUU_XXII_2024:page:79",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:20",
+          "UU_27_2022:article:16",
+          "UU_27_2022:explanation:article:26",
+          "UU_27_2022:article:4",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:84",
+          "UU_27_2022:article:33"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:1",
+          "UU_27_2022:article:4",
+          "MK_151_PUU_XXII_2024:page:79",
+          "UU_27_2022:explanation:article:26",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:14",
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:33",
+          "UU_27_2022:article:32"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q02",
+      "split": "dev",
+      "question": "Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:46"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:71",
+          "MK_151_PUU_XXII_2024:page:78",
+          "MK_151_PUU_XXII_2024:page:39",
+          "UU_27_2022:article:67",
+          "MK_151_PUU_XXII_2024:page:151",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:22",
+          "MK_151_PUU_XXII_2024:page:51",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:74"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:46",
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:32",
+          "MK_151_PUU_XXII_2024:page:27",
+          "UU_27_2022:article:48",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:16",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:12"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.05430319999868516,
+        "dense": 0.10724320000008447,
+        "hybrid_fusion": 7.680000089749228e-05,
+        "reranker": 7.411751299998286
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:67",
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:74",
+          "MK_151_PUU_XXII_2024:page:66",
+          "UU_27_2022:article:46",
+          "UU_27_2022:article:71",
+          "MK_151_PUU_XXII_2024:page:78",
+          "UU_27_2022:article:30"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.14285714285714285,
+        "first_relevant_rank": 7
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:46",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:74",
+          "UU_27_2022:article:67",
+          "MK_151_PUU_XXII_2024:page:22",
+          "MK_151_PUU_XXII_2024:page:27",
+          "UU_27_2022:article:48"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:46",
+          "MK_151_PUU_XXII_2024:page:27",
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:74",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:67"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q03",
+      "split": "dev",
+      "question": "Apa kewajiban pengendali untuk menjaga keamanan informasi pribadi yang sedang diproses?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:35"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:151",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:121",
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:119",
+          "MK_151_PUU_XXII_2024:page:67",
+          "MK_151_PUU_XXII_2024:page:102",
+          "MK_151_PUU_XXII_2024:page:152",
+          "MK_151_PUU_XXII_2024:page:96",
+          "MK_151_PUU_XXII_2024:page:146"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:66",
+          "UU_27_2022:article:39",
+          "UU_27_2022:article:53",
+          "UU_27_2022:article:35",
+          "UU_27_2022:article:52",
+          "MK_151_PUU_XXII_2024:page:152",
+          "UU_27_2022:article:19"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.14285714285714285,
+        "first_relevant_rank": 7
+      },
+      "latency_seconds": {
+        "bm25": 0.05880120000074385,
+        "dense": 0.11104049999994459,
+        "hybrid_fusion": 7.100000038917642e-05,
+        "reranker": 7.36985629999981
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:152",
+          "UU_27_2022:article:39",
+          "MK_151_PUU_XXII_2024:page:151",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:121",
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:119"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:39",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:152",
+          "MK_151_PUU_XXII_2024:page:66",
+          "UU_27_2022:article:53",
+          "UU_27_2022:article:35",
+          "UU_27_2022:article:52",
+          "UU_27_2022:article:19"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.125,
+        "first_relevant_rank": 8
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:35",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:120",
+          "UU_27_2022:article:39",
+          "MK_151_PUU_XXII_2024:page:121",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:52",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:86"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q04",
+      "split": "dev",
+      "question": "Apakah semua kriteria penunjukan petugas pelindungan data harus dipenuhi bersama-sama?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:53",
+        "MK_151_PUU_XXII_2024:page:157",
+        "MK_151_PUU_XXII_2024:page:159"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:8",
+          "MK_151_PUU_XXII_2024:page:42",
+          "MK_151_PUU_XXII_2024:page:50",
+          "MK_151_PUU_XXII_2024:page:43",
+          "MK_151_PUU_XXII_2024:page:139",
+          "MK_151_PUU_XXII_2024:page:135",
+          "MK_151_PUU_XXII_2024:page:63",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:97",
+          "MK_151_PUU_XXII_2024:page:125"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:101",
+          "UU_27_2022:article:53",
+          "UU_27_2022:explanation:article:53",
+          "UU_27_2022:article:54",
+          "MK_151_PUU_XXII_2024:page:67",
+          "MK_151_PUU_XXII_2024:page:42",
+          "MK_151_PUU_XXII_2024:page:83",
+          "MK_151_PUU_XXII_2024:page:105",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:90"
+        ],
+        "recall_at_5": 0.3333333333333333,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "latency_seconds": {
+        "bm25": 0.0579422999999224,
+        "dense": 0.11160410000047705,
+        "hybrid_fusion": 9.189999946102034e-05,
+        "reranker": 7.276747299998533
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:42",
+          "MK_151_PUU_XXII_2024:page:8",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:139",
+          "MK_151_PUU_XXII_2024:page:43",
+          "MK_151_PUU_XXII_2024:page:69",
+          "MK_151_PUU_XXII_2024:page:101",
+          "UU_27_2022:article:53",
+          "MK_151_PUU_XXII_2024:page:50",
+          "UU_27_2022:explanation:article:53"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.125,
+        "first_relevant_rank": 8
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:42",
+          "MK_151_PUU_XXII_2024:page:8",
+          "MK_151_PUU_XXII_2024:page:101",
+          "UU_27_2022:article:53",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:explanation:article:53",
+          "MK_151_PUU_XXII_2024:page:139",
+          "UU_27_2022:article:54",
+          "MK_151_PUU_XXII_2024:page:43",
+          "MK_151_PUU_XXII_2024:page:67"
+        ],
+        "recall_at_5": 0.3333333333333333,
+        "mrr_at_10": 0.25,
+        "first_relevant_rank": 4
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:8",
+          "MK_151_PUU_XXII_2024:page:42",
+          "MK_151_PUU_XXII_2024:page:139",
+          "MK_151_PUU_XXII_2024:page:69",
+          "MK_151_PUU_XXII_2024:page:43",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:70",
+          "UU_27_2022:article:53",
+          "MK_151_PUU_XXII_2024:page:83",
+          "MK_151_PUU_XXII_2024:page:101"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.125,
+        "first_relevant_rank": 8
+      }
+    },
+    {
+      "question_id": "Q05",
+      "split": "dev",
+      "question": "Dalam keadaan apa pemrosesan data pribadi boleh dikirim ke luar wilayah Indonesia?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:56"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:55",
+          "UU_27_2022:article:2",
+          "MK_151_PUU_XXII_2024:page:77",
+          "MK_151_PUU_XXII_2024:page:59",
+          "UU_27_2022:article:60",
+          "UU_27_2022:article:56",
+          "MK_151_PUU_XXII_2024:page:69",
+          "UU_27_2022:explanation:article:46",
+          "MK_151_PUU_XXII_2024:page:30",
+          "MK_151_PUU_XXII_2024:page:57"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.16666666666666666,
+        "first_relevant_rank": 6
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:2",
+          "UU_27_2022:article:55",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:56",
+          "MK_151_PUU_XXII_2024:page:82",
+          "UU_27_2022:article:16",
+          "UU_27_2022:article:41",
+          "MK_151_PUU_XXII_2024:page:151",
+          "UU_27_2022:article:54",
+          "UU_27_2022:article:42"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.25,
+        "first_relevant_rank": 4
+      },
+      "latency_seconds": {
+        "bm25": 0.047270799999751034,
+        "dense": 0.11185389999991457,
+        "hybrid_fusion": 9.309999950346537e-05,
+        "reranker": 7.263895199999752
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:2",
+          "UU_27_2022:article:55",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:56",
+          "UU_27_2022:article:54",
+          "UU_27_2022:article:76",
+          "MK_151_PUU_XXII_2024:page:59",
+          "MK_151_PUU_XXII_2024:page:82",
+          "UU_27_2022:article:60",
+          "UU_27_2022:article:16"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.25,
+        "first_relevant_rank": 4
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:2",
+          "UU_27_2022:article:55",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:56",
+          "UU_27_2022:article:54",
+          "UU_27_2022:article:76",
+          "MK_151_PUU_XXII_2024:page:82",
+          "UU_27_2022:article:16",
+          "UU_27_2022:article:41",
+          "MK_151_PUU_XXII_2024:page:151"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.25,
+        "first_relevant_rank": 4
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:2",
+          "UU_27_2022:article:55",
+          "MK_151_PUU_XXII_2024:page:59",
+          "UU_27_2022:article:56",
+          "UU_27_2022:article:42",
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:77",
+          "MK_151_PUU_XXII_2024:page:26",
+          "UU_27_2022:article:24",
+          "MK_151_PUU_XXII_2024:page:82"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.25,
+        "first_relevant_rank": 4
+      }
+    },
+    {
+      "question_id": "Q06",
+      "split": "dev",
+      "question": "Apa ancaman pidana jika seseorang dengan sengaja membocorkan data pribadi milik orang lain secara melawan hukum?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:65",
+        "UU_27_2022:article:67"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:65",
+          "MK_151_PUU_XXII_2024:page:15",
+          "MK_151_PUU_XXII_2024:page:14",
+          "MK_151_PUU_XXII_2024:page:36",
+          "UU_27_2022:explanation:article:4",
+          "UU_27_2022:explanation:article:33",
+          "UU_27_2022:article:66",
+          "UU_27_2022:article:33"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "MK_151_PUU_XXII_2024:page:66",
+          "UU_27_2022:article:65",
+          "MK_151_PUU_XXII_2024:page:12",
+          "UU_27_2022:article:66",
+          "MK_151_PUU_XXII_2024:page:39",
+          "MK_151_PUU_XXII_2024:page:130",
+          "MK_151_PUU_XXII_2024:page:113",
+          "MK_151_PUU_XXII_2024:page:11"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.058402900000146474,
+        "dense": 0.11684950000017125,
+        "hybrid_fusion": 9.080000018002465e-05,
+        "reranker": 7.202393100000336
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:65",
+          "UU_27_2022:article:66",
+          "UU_27_2022:explanation:article:46",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:15",
+          "MK_151_PUU_XXII_2024:page:12",
+          "MK_151_PUU_XXII_2024:page:14",
+          "MK_151_PUU_XXII_2024:page:36"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:65",
+          "UU_27_2022:article:66",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:12",
+          "MK_151_PUU_XXII_2024:page:39",
+          "UU_27_2022:explanation:article:46",
+          "MK_151_PUU_XXII_2024:page:130",
+          "MK_151_PUU_XXII_2024:page:113"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:65",
+          "UU_27_2022:article:66",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:15",
+          "MK_151_PUU_XXII_2024:page:56",
+          "MK_151_PUU_XXII_2024:page:52",
+          "MK_151_PUU_XXII_2024:page:39",
+          "UU_27_2022:explanation:article:46"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q07",
+      "split": "dev",
+      "question": "Apa dasar yang harus dimiliki sebelum pengendali mulai memproses data pribadi?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:20"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:77",
+          "MK_151_PUU_XXII_2024:page:102",
+          "MK_151_PUU_XXII_2024:page:45",
+          "MK_151_PUU_XXII_2024:page:11",
+          "MK_151_PUU_XXII_2024:page:20",
+          "MK_151_PUU_XXII_2024:page:120",
+          "MK_151_PUU_XXII_2024:page:30",
+          "MK_151_PUU_XXII_2024:page:150",
+          "MK_151_PUU_XXII_2024:page:65",
+          "UU_27_2022:article:74"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:article:18",
+          "UU_27_2022:article:53",
+          "MK_151_PUU_XXII_2024:page:84",
+          "UU_27_2022:article:29",
+          "UU_27_2022:article:74",
+          "MK_151_PUU_XXII_2024:page:21",
+          "MK_151_PUU_XXII_2024:page:149"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "latency_seconds": {
+        "bm25": 0.04663869999967574,
+        "dense": 0.11082309999983408,
+        "hybrid_fusion": 9.28999997995561e-05,
+        "reranker": 7.576143199999933
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:74",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:20",
+          "UU_27_2022:article:51",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:102",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:45"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:74",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:20",
+          "UU_27_2022:article:18",
+          "UU_27_2022:article:53",
+          "MK_151_PUU_XXII_2024:page:84",
+          "UU_27_2022:article:29"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:20",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:18",
+          "MK_151_PUU_XXII_2024:page:102",
+          "UU_27_2022:article:51",
+          "UU_27_2022:article:53",
+          "MK_151_PUU_XXII_2024:page:149",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:20",
+          "UU_27_2022:article:74"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q08",
+      "split": "dev",
+      "question": "Bagaimana seseorang bisa melihat dan memperoleh salinan informasi pribadinya?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:7"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:7",
+          "MK_151_PUU_XXII_2024:page:14",
+          "UU_27_2022:explanation:article:7",
+          "MK_151_PUU_XXII_2024:page:15",
+          "MK_151_PUU_XXII_2024:page:107",
+          "MK_151_PUU_XXII_2024:page:58",
+          "MK_151_PUU_XXII_2024:page:6",
+          "UU_27_2022:article:76",
+          "UU_27_2022:explanation:article:4",
+          "MK_151_PUU_XXII_2024:page:109"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:7",
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:13",
+          "UU_27_2022:article:55",
+          "UU_27_2022:article:5",
+          "UU_27_2022:article:35",
+          "UU_27_2022:article:29",
+          "UU_27_2022:article:24",
+          "UU_27_2022:explanation:article:7",
+          "UU_27_2022:article:33"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.061516899999332963,
+        "dense": 0.1121856999998272,
+        "hybrid_fusion": 9.4600000011269e-05,
+        "reranker": 7.204489300000205
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:7",
+          "UU_27_2022:explanation:article:7",
+          "MK_151_PUU_XXII_2024:page:14",
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:13",
+          "MK_151_PUU_XXII_2024:page:15",
+          "UU_27_2022:article:55",
+          "MK_151_PUU_XXII_2024:page:107",
+          "UU_27_2022:article:5",
+          "MK_151_PUU_XXII_2024:page:58"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:7",
+          "UU_27_2022:explanation:article:7",
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:13",
+          "UU_27_2022:article:55",
+          "UU_27_2022:article:5",
+          "UU_27_2022:article:35",
+          "UU_27_2022:article:29",
+          "UU_27_2022:article:24",
+          "UU_27_2022:article:33"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:7",
+          "UU_27_2022:explanation:article:7",
+          "UU_27_2022:article:1",
+          "UU_27_2022:article:13",
+          "UU_27_2022:article:5",
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:16",
+          "UU_27_2022:article:48",
+          "UU_27_2022:article:24",
+          "MK_151_PUU_XXII_2024:page:15"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q09",
+      "split": "dev",
+      "question": "Bisakah pemilik data meminta pemrosesan dihentikan serta datanya dihapus atau dimusnahkan?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:8"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:21",
+          "MK_151_PUU_XXII_2024:page:152",
+          "MK_151_PUU_XXII_2024:page:44",
+          "MK_151_PUU_XXII_2024:page:41",
+          "MK_151_PUU_XXII_2024:page:92",
+          "UU_27_2022:article:44",
+          "MK_151_PUU_XXII_2024:page:18",
+          "UU_27_2022:article:5",
+          "MK_151_PUU_XXII_2024:page:26"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:26",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:42",
+          "UU_27_2022:article:43",
+          "MK_151_PUU_XXII_2024:page:20",
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:8"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.1,
+        "first_relevant_rank": 10
+      },
+      "latency_seconds": {
+        "bm25": 0.061792400001650094,
+        "dense": 0.11835400000018126,
+        "hybrid_fusion": 9.270000009564683e-05,
+        "reranker": 7.132431100000758
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:21",
+          "MK_151_PUU_XXII_2024:page:26",
+          "UU_27_2022:article:44",
+          "UU_27_2022:article:40",
+          "MK_151_PUU_XXII_2024:page:152",
+          "MK_151_PUU_XXII_2024:page:44",
+          "UU_27_2022:article:41",
+          "MK_151_PUU_XXII_2024:page:41",
+          "UU_27_2022:article:42"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:26",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:44",
+          "UU_27_2022:article:42",
+          "UU_27_2022:article:43",
+          "MK_151_PUU_XXII_2024:page:20",
+          "MK_151_PUU_XXII_2024:page:25"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.0,
+        "first_relevant_rank": null
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:8",
+          "MK_151_PUU_XXII_2024:page:93",
+          "MK_151_PUU_XXII_2024:page:21",
+          "MK_151_PUU_XXII_2024:page:26",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:11",
+          "UU_27_2022:article:42",
+          "UU_27_2022:article:16",
+          "UU_27_2022:article:43"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q10",
+      "split": "dev",
+      "question": "Apa hak seseorang jika keputusan otomatis atau pemrofilan berdampak hukum atau signifikan terhadapnya?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:10"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:10",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:24",
+          "UU_27_2022:explanation:article:46",
+          "MK_151_PUU_XXII_2024:page:14",
+          "MK_151_PUU_XXII_2024:page:40",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:48",
+          "MK_151_PUU_XXII_2024:page:9"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:10",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:explanation:article:34",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:56",
+          "MK_151_PUU_XXII_2024:page:48",
+          "MK_151_PUU_XXII_2024:page:158",
+          "MK_151_PUU_XXII_2024:page:113",
+          "MK_151_PUU_XXII_2024:page:130"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.047829499999352265,
+        "dense": 0.11824049999995623,
+        "hybrid_fusion": 9.309999950346537e-05,
+        "reranker": 7.427106200000708
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:10",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:48",
+          "MK_151_PUU_XXII_2024:page:154",
+          "MK_151_PUU_XXII_2024:page:77",
+          "MK_151_PUU_XXII_2024:page:75",
+          "UU_27_2022:explanation:article:34",
+          "MK_151_PUU_XXII_2024:page:24"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:10",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:48",
+          "UU_27_2022:explanation:article:34",
+          "MK_151_PUU_XXII_2024:page:56",
+          "MK_151_PUU_XXII_2024:page:77",
+          "MK_151_PUU_XXII_2024:page:154",
+          "MK_151_PUU_XXII_2024:page:158"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:10",
+          "MK_151_PUU_XXII_2024:page:93",
+          "MK_151_PUU_XXII_2024:page:154",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:48",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:24",
+          "MK_151_PUU_XXII_2024:page:91",
+          "MK_151_PUU_XXII_2024:page:158",
+          "MK_151_PUU_XXII_2024:page:115"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q11",
+      "split": "dev",
+      "question": "Setelah menerima permintaan koreksi, berapa lama batas waktu untuk membetulkan data yang tidak akurat?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:30"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:71",
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:67",
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:24",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:30"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.1,
+        "first_relevant_rank": 10
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:46",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:74",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:23",
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:33"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.06053049999900395,
+        "dense": 0.11308819999976549,
+        "hybrid_fusion": 6.589999975403771e-05,
+        "reranker": 7.5179158999999345
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:30",
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:16",
+          "UU_27_2022:article:74",
+          "UU_27_2022:article:71",
+          "UU_27_2022:article:46"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:40",
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:74",
+          "UU_27_2022:article:16",
+          "UU_27_2022:article:46",
+          "MK_151_PUU_XXII_2024:page:23"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:32",
+          "UU_27_2022:article:46",
+          "UU_27_2022:article:74",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:6",
+          "UU_27_2022:article:23",
+          "UU_27_2022:article:42"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q12",
+      "split": "dev",
+      "question": "Dalam kondisi risiko seperti apa pengendali wajib melakukan penilaian dampak pelindungan data?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:34"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:48",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:24",
+          "MK_151_PUU_XXII_2024:page:119",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:102",
+          "MK_151_PUU_XXII_2024:page:32",
+          "UU_27_2022:explanation:article:34",
+          "MK_151_PUU_XXII_2024:page:31"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:explanation:article:34",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:48",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:47",
+          "MK_151_PUU_XXII_2024:page:13",
+          "MK_151_PUU_XXII_2024:page:154",
+          "MK_151_PUU_XXII_2024:page:119"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "latency_seconds": {
+        "bm25": 0.05316510000011476,
+        "dense": 0.10314049999942654,
+        "hybrid_fusion": 8.95000011951197e-05,
+        "reranker": 7.381111699998655
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:48",
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:explanation:article:34",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:24",
+          "MK_151_PUU_XXII_2024:page:119",
+          "MK_151_PUU_XXII_2024:page:47",
+          "MK_151_PUU_XXII_2024:page:31",
+          "MK_151_PUU_XXII_2024:page:32"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:34",
+          "UU_27_2022:explanation:article:34",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:48",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:119",
+          "MK_151_PUU_XXII_2024:page:24",
+          "MK_151_PUU_XXII_2024:page:47",
+          "MK_151_PUU_XXII_2024:page:31",
+          "MK_151_PUU_XXII_2024:page:32"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:48",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:24",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:119",
+          "UU_27_2022:explanation:article:34",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:12",
+          "MK_151_PUU_XXII_2024:page:101"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      }
+    },
+    {
+      "question_id": "Q13",
+      "split": "dev",
+      "question": "Apa tanggung jawab pengendali untuk menjaga kerahasiaan data selama pemrosesan?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:36"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:36",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:51",
+          "MK_151_PUU_XXII_2024:page:119",
+          "MK_151_PUU_XXII_2024:page:152",
+          "MK_151_PUU_XXII_2024:page:86",
+          "UU_27_2022:article:18",
+          "MK_151_PUU_XXII_2024:page:28",
+          "MK_151_PUU_XXII_2024:page:21"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:36",
+          "MK_151_PUU_XXII_2024:page:65",
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:20",
+          "UU_27_2022:article:35",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:article:47",
+          "UU_27_2022:article:18",
+          "MK_151_PUU_XXII_2024:page:66"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "latency_seconds": {
+        "bm25": 0.059073000000353204,
+        "dense": 0.11084420000042883,
+        "hybrid_fusion": 8.150000030582305e-05,
+        "reranker": 7.334446400000161
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:36",
+          "MK_151_PUU_XXII_2024:page:65",
+          "UU_27_2022:article:18",
+          "UU_27_2022:article:51",
+          "MK_151_PUU_XXII_2024:page:21",
+          "MK_151_PUU_XXII_2024:page:152",
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:16"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:36",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:18",
+          "UU_27_2022:article:51",
+          "UU_27_2022:article:16",
+          "MK_151_PUU_XXII_2024:page:21",
+          "MK_151_PUU_XXII_2024:page:20",
+          "MK_151_PUU_XXII_2024:page:152",
+          "UU_27_2022:article:35"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:25",
+          "UU_27_2022:article:36",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:37",
+          "UU_27_2022:article:47",
+          "UU_27_2022:article:38",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:65",
+          "UU_27_2022:article:35"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      }
+    },
+    {
+      "question_id": "Q14",
+      "split": "dev",
+      "question": "Bagaimana pengendali harus mencegah pihak yang tidak berwenang mengakses data pribadi?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:39"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:33",
+          "UU_27_2022:article:39",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:80",
+          "MK_151_PUU_XXII_2024:page:122",
+          "UU_27_2022:explanation:article:3",
+          "MK_151_PUU_XXII_2024:page:126",
+          "MK_151_PUU_XXII_2024:page:120",
+          "MK_151_PUU_XXII_2024:page:118"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.3333333333333333,
+        "first_relevant_rank": 3
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:39",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:article:53",
+          "MK_151_PUU_XXII_2024:page:66",
+          "UU_27_2022:article:38",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:19",
+          "UU_27_2022:article:37",
+          "MK_151_PUU_XXII_2024:page:65"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.05965149999974528,
+        "dense": 0.11474119999911636,
+        "hybrid_fusion": 9.280000085709617e-05,
+        "reranker": 7.190472399999635
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:39",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:33",
+          "UU_27_2022:article:53",
+          "MK_151_PUU_XXII_2024:page:80",
+          "UU_27_2022:article:38",
+          "MK_151_PUU_XXII_2024:page:122",
+          "MK_151_PUU_XXII_2024:page:60"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:39",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:article:53",
+          "UU_27_2022:article:38",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:19",
+          "UU_27_2022:article:37",
+          "MK_151_PUU_XXII_2024:page:65"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:39",
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:34",
+          "UU_27_2022:article:33",
+          "UU_27_2022:article:37",
+          "UU_27_2022:article:38",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:65",
+          "MK_151_PUU_XXII_2024:page:84",
+          "UU_27_2022:article:35"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q15",
+      "split": "holdout",
+      "question": "Dapatkah seseorang menuntut ganti rugi atas pelanggaran pemrosesan data tentang dirinya?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:12"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:12",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:9",
+          "UU_27_2022:article:8",
+          "MK_151_PUU_XXII_2024:page:15",
+          "UU_27_2022:article:6",
+          "MK_151_PUU_XXII_2024:page:14",
+          "MK_151_PUU_XXII_2024:page:52",
+          "MK_151_PUU_XXII_2024:page:86",
+          "UU_27_2022:article:13"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:12",
+          "UU_27_2022:article:10",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:66",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:16"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.05588039999929606,
+        "dense": 0.11747740000100748,
+        "hybrid_fusion": 9.390000013809185e-05,
+        "reranker": 7.511829400000352
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:12",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:10",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:9",
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:8",
+          "MK_151_PUU_XXII_2024:page:15",
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:6"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:12",
+          "UU_27_2022:article:10",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:41",
+          "UU_27_2022:article:30",
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:34",
+          "MK_151_PUU_XXII_2024:page:66",
+          "UU_27_2022:article:40"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:12",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:9",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:120",
+          "UU_27_2022:article:8",
+          "UU_27_2022:article:10",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:40"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q16",
+      "split": "holdout",
+      "question": "Persetujuan siapa yang diperlukan sebelum data pribadi anak diproses?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:25"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:22",
+          "MK_151_PUU_XXII_2024:page:23",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:25",
+          "MK_151_PUU_XXII_2024:page:26",
+          "UU_27_2022:article:43",
+          "MK_151_PUU_XXII_2024:page:58",
+          "MK_151_PUU_XXII_2024:page:25",
+          "MK_151_PUU_XXII_2024:page:28",
+          "MK_151_PUU_XXII_2024:page:92"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.25,
+        "first_relevant_rank": 4
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:25",
+          "MK_151_PUU_XXII_2024:page:23",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:101",
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:18",
+          "UU_27_2022:article:42",
+          "MK_151_PUU_XXII_2024:page:14",
+          "UU_27_2022:article:48"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.060749500000383705,
+        "dense": 0.12151900000026217,
+        "hybrid_fusion": 0.00016870000035851263,
+        "reranker": 7.97628049999912
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:23",
+          "UU_27_2022:article:25",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:22",
+          "MK_151_PUU_XXII_2024:page:101",
+          "MK_151_PUU_XXII_2024:page:92",
+          "UU_27_2022:article:48",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:26",
+          "UU_27_2022:article:19"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:25",
+          "MK_151_PUU_XXII_2024:page:23",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:22",
+          "MK_151_PUU_XXII_2024:page:101",
+          "UU_27_2022:article:19",
+          "UU_27_2022:article:48",
+          "MK_151_PUU_XXII_2024:page:92",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:18"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:23",
+          "UU_27_2022:article:25",
+          "UU_27_2022:article:26",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:92",
+          "MK_151_PUU_XXII_2024:page:22",
+          "MK_151_PUU_XXII_2024:page:21",
+          "MK_151_PUU_XXII_2024:page:101",
+          "UU_27_2022:article:20",
+          "UU_27_2022:article:40"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      }
+    },
+    {
+      "question_id": "Q17",
+      "split": "holdout",
+      "question": "Jika pemrosesan memakai persetujuan, informasi apa yang wajib diberikan pengendali kepada subjek data?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:21"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:22",
+          "MK_151_PUU_XXII_2024:page:92",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:32",
+          "MK_151_PUU_XXII_2024:page:23",
+          "UU_27_2022:article:9",
+          "MK_151_PUU_XXII_2024:page:152",
+          "UU_27_2022:article:20",
+          "MK_151_PUU_XXII_2024:page:24"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.3333333333333333,
+        "first_relevant_rank": 3
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:18",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:24",
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:26",
+          "UU_27_2022:article:20",
+          "UU_27_2022:article:10",
+          "UU_27_2022:article:42"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.16666666666666666,
+        "first_relevant_rank": 6
+      },
+      "latency_seconds": {
+        "bm25": 0.051461199998811935,
+        "dense": 0.1174421000014263,
+        "hybrid_fusion": 0.0001247000000148546,
+        "reranker": 7.101321000000098
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:21",
+          "UU_27_2022:article:20",
+          "MK_151_PUU_XXII_2024:page:92",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:24",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:40",
+          "UU_27_2022:article:41",
+          "MK_151_PUU_XXII_2024:page:60"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:24",
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:18",
+          "UU_27_2022:article:20",
+          "MK_151_PUU_XXII_2024:page:92",
+          "MK_151_PUU_XXII_2024:page:93",
+          "UU_27_2022:article:40"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:22",
+          "UU_27_2022:article:21",
+          "MK_151_PUU_XXII_2024:page:92",
+          "UU_27_2022:article:24",
+          "UU_27_2022:article:20",
+          "UU_27_2022:article:26",
+          "MK_151_PUU_XXII_2024:page:21",
+          "UU_27_2022:article:40",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:93"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      }
+    },
+    {
+      "question_id": "Q18",
+      "split": "holdout",
+      "question": "Apa kewajiban kedua pengendali ketika memindahkan data pribadi di dalam wilayah Indonesia?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:55"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:55",
+          "UU_27_2022:article:2",
+          "MK_151_PUU_XXII_2024:page:156",
+          "MK_151_PUU_XXII_2024:page:96",
+          "MK_151_PUU_XXII_2024:page:102",
+          "MK_151_PUU_XXII_2024:page:59",
+          "MK_151_PUU_XXII_2024:page:125",
+          "MK_151_PUU_XXII_2024:page:77",
+          "MK_151_PUU_XXII_2024:page:116",
+          "UU_27_2022:article:56"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:55",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:54",
+          "UU_27_2022:article:56",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:18",
+          "MK_151_PUU_XXII_2024:page:84",
+          "UU_27_2022:article:48"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.051816699999108096,
+        "dense": 0.12011549999988347,
+        "hybrid_fusion": 6.969999958528206e-05,
+        "reranker": 6.3664303999994445
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:55",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:56",
+          "UU_27_2022:article:54",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:59",
+          "UU_27_2022:article:2",
+          "MK_151_PUU_XXII_2024:page:156",
+          "MK_151_PUU_XXII_2024:page:96",
+          "MK_151_PUU_XXII_2024:page:102"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:55",
+          "MK_151_PUU_XXII_2024:page:77",
+          "UU_27_2022:article:54",
+          "UU_27_2022:article:56",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:59",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:60",
+          "UU_27_2022:article:18",
+          "MK_151_PUU_XXII_2024:page:84"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:55",
+          "UU_27_2022:article:18",
+          "UU_27_2022:article:56",
+          "MK_151_PUU_XXII_2024:page:59",
+          "MK_151_PUU_XXII_2024:page:82",
+          "UU_27_2022:article:19",
+          "MK_151_PUU_XXII_2024:page:60",
+          "MK_151_PUU_XXII_2024:page:11",
+          "MK_151_PUU_XXII_2024:page:66",
+          "UU_27_2022:article:48"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      }
+    },
+    {
+      "question_id": "Q19",
+      "split": "holdout",
+      "question": "Selain pidana pada Pasal 67 atau 68, hukuman tambahan apa yang dapat dijatuhkan?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:69"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:70",
+          "UU_27_2022:article:69",
+          "UU_27_2022:article:68",
+          "MK_151_PUU_XXII_2024:page:96",
+          "MK_151_PUU_XXII_2024:page:71",
+          "UU_27_2022:article:71",
+          "MK_151_PUU_XXII_2024:page:63",
+          "UU_27_2022:article:73",
+          "MK_151_PUU_XXII_2024:page:107"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.3333333333333333,
+        "first_relevant_rank": 3
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:69",
+          "UU_27_2022:article:70",
+          "UU_27_2022:article:73",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:71",
+          "UU_27_2022:article:57",
+          "UU_27_2022:article:66",
+          "UU_27_2022:explanation:article:68",
+          "MK_151_PUU_XXII_2024:page:66"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.05442549999861512,
+        "dense": 0.11997709999923245,
+        "hybrid_fusion": 6.69999990350334e-05,
+        "reranker": 6.0163106999989395
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:69",
+          "UU_27_2022:article:70",
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:73",
+          "UU_27_2022:article:71",
+          "MK_151_PUU_XXII_2024:page:63",
+          "UU_27_2022:explanation:article:68",
+          "UU_27_2022:article:66",
+          "UU_27_2022:explanation:article:67"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:69",
+          "UU_27_2022:article:70",
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:73",
+          "UU_27_2022:article:71",
+          "UU_27_2022:article:66",
+          "UU_27_2022:explanation:article:68",
+          "MK_151_PUU_XXII_2024:page:63",
+          "UU_27_2022:explanation:article:67"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:70",
+          "UU_27_2022:article:69",
+          "UU_27_2022:article:73",
+          "UU_27_2022:article:67",
+          "UU_27_2022:article:71",
+          "UU_27_2022:article:68",
+          "UU_27_2022:article:60",
+          "UU_27_2022:article:72",
+          "UU_27_2022:explanation:article:67",
+          "UU_27_2022:article:57"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      }
+    },
+    {
+      "question_id": "Q20",
+      "split": "holdout",
+      "question": "Apa kewenangan lembaga pelindungan data untuk mengawasi kepatuhan dan menindak pelanggaran?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:60"
+      ],
+      "bm25": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:94",
+          "MK_151_PUU_XXII_2024:page:29",
+          "MK_151_PUU_XXII_2024:page:68",
+          "MK_151_PUU_XXII_2024:page:122",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:article:60",
+          "MK_151_PUU_XXII_2024:page:30",
+          "MK_151_PUU_XXII_2024:page:137",
+          "MK_151_PUU_XXII_2024:page:35",
+          "MK_151_PUU_XXII_2024:page:102"
+        ],
+        "recall_at_5": 0.0,
+        "mrr_at_10": 0.16666666666666666,
+        "first_relevant_rank": 6
+      },
+      "dense": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:60",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:68",
+          "MK_151_PUU_XXII_2024:page:94",
+          "MK_151_PUU_XXII_2024:page:29",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:article:63",
+          "UU_27_2022:article:58",
+          "MK_151_PUU_XXII_2024:page:131",
+          "MK_151_PUU_XXII_2024:page:85"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "latency_seconds": {
+        "bm25": 0.054473700000016834,
+        "dense": 0.123893500000122,
+        "hybrid_fusion": 9.259999933419749e-05,
+        "reranker": 5.88570510000136
+      },
+      "hybrid_baseline": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:94",
+          "MK_151_PUU_XXII_2024:page:68",
+          "UU_27_2022:article:60",
+          "MK_151_PUU_XXII_2024:page:29",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:122",
+          "MK_151_PUU_XXII_2024:page:30",
+          "UU_27_2022:article:63",
+          "MK_151_PUU_XXII_2024:page:137"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.3333333333333333,
+        "first_relevant_rank": 3
+      },
+      "hybrid_tuned": {
+        "ranked_chunk_ids": [
+          "UU_27_2022:article:60",
+          "MK_151_PUU_XXII_2024:page:94",
+          "MK_151_PUU_XXII_2024:page:68",
+          "MK_151_PUU_XXII_2024:page:29",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:19",
+          "UU_27_2022:article:63",
+          "UU_27_2022:article:58",
+          "MK_151_PUU_XXII_2024:page:131",
+          "MK_151_PUU_XXII_2024:page:85"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 1.0,
+        "first_relevant_rank": 1
+      },
+      "hybrid_rerank": {
+        "ranked_chunk_ids": [
+          "MK_151_PUU_XXII_2024:page:94",
+          "UU_27_2022:article:60",
+          "UU_27_2022:article:59",
+          "MK_151_PUU_XXII_2024:page:19",
+          "MK_151_PUU_XXII_2024:page:68",
+          "MK_151_PUU_XXII_2024:page:34",
+          "MK_151_PUU_XXII_2024:page:29",
+          "UU_27_2022:article:54",
+          "MK_151_PUU_XXII_2024:page:66",
+          "MK_151_PUU_XXII_2024:page:85"
+        ],
+        "recall_at_5": 1.0,
+        "mrr_at_10": 0.5,
+        "first_relevant_rank": 2
+      }
+    }
+  ]
+}

@@ -12,7 +12,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from app.generation import GeneratorUnavailable, InvalidModelResponse, OLLAMA_MODEL, generate
-from app.search import search
+from app.reranking import RerankerUnavailable, rerank
+from app.search import DenseSearchUnavailable, search
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "data/manifest.jsonl"
@@ -23,7 +24,7 @@ app = FastAPI(title="RegulaRAG Indonesia", version="0.1.0")
 
 class QueryRequest(BaseModel):
     question: str = Field(min_length=3, max_length=2000)
-    retrieval_mode: Literal["bm25"] = "bm25"
+    retrieval_mode: Literal["bm25", "dense", "hybrid", "hybrid_rerank"] = "bm25"
     top_k: int = Field(default=5, ge=1, le=10)
     document_ids: list[str] | None = Field(default=None, max_length=20)
 
@@ -73,10 +74,19 @@ def query(request: QueryRequest) -> dict:
     if request.document_ids and not set(request.document_ids) <= known_ids:
         raise HTTPException(status_code=422, detail="document_ids memuat ID yang tidak terdaftar.")
     try:
-        hits = search(request.question, CHUNKS, request.top_k,
-                      set(request.document_ids) if request.document_ids else None)
+        candidate_k = 20 if request.retrieval_mode == "hybrid_rerank" else request.top_k
+        mode = "hybrid" if request.retrieval_mode == "hybrid_rerank" else request.retrieval_mode
+        hits = search(request.question, CHUNKS, candidate_k,
+                      set(request.document_ids) if request.document_ids else None,
+                      retrieval_mode=mode)
+        if request.retrieval_mode == "hybrid_rerank" and hits:
+            hits = rerank(request.question, hits, request.top_k)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail="Index belum dibuat. Jalankan ingestion terlebih dahulu.") from exc
+    except DenseSearchUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except RerankerUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     if not hits:
         return {"answer": "Corpus saat ini tidak menyediakan bukti yang memadai untuk menjawab pertanyaan ini.",
                 "abstained": True, "reason": "no_evidence", "retrieval_mode": request.retrieval_mode,

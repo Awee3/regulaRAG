@@ -1,13 +1,17 @@
 import json
 import io
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from app.search import search
-from app.generation import GeneratorUnavailable, InvalidModelResponse, generate
+from app.generation import OLLAMA_MODEL, OLLAMA_NUM_CTX, GeneratorUnavailable, InvalidModelResponse, generate
 from app.main import QueryRequest, query
+from app.reranking import rerank
+from evaluation.run_retrieval import _metrics, recall_at_k, reciprocal_rank_at_k
 from ingestion.build_corpus import build
 from ingestion.legal_text import article_metadata, parse_pages
 
@@ -41,6 +45,63 @@ class LegalTextTests(unittest.TestCase):
 
 
 class SearchTests(unittest.TestCase):
+    def test_retrieval_metrics_measure_labeled_hits_and_first_relevant_rank(self):
+        relevant = {"c2", "c4"}
+        ranked = ["c1", "c2", "c3", "c4"]
+        self.assertEqual(recall_at_k(relevant, ranked, 3), 0.5)
+        self.assertEqual(reciprocal_rank_at_k(relevant, ranked, 10), 0.5)
+        self.assertEqual(reciprocal_rank_at_k({"missing"}, ranked, 10), 0.0)
+        self.assertEqual(_metrics([{"bm25": {"recall_at_5": 0.5, "mrr_at_10": 0.5}},
+                                  {"bm25": {"recall_at_5": 1.0, "mrr_at_10": 1.0}}], "bm25"),
+                         {"recall_at_5": 0.75, "mrr_at_10": 0.75})
+
+    def test_weighted_rrf_can_favor_dense_ranking(self):
+        from app.search import _rrf
+
+        dense = [{"chunk_id": "dense", "text": "semantic"}, {"chunk_id": "lexical", "text": "exact"}]
+        lexical = [{"chunk_id": "lexical", "text": "exact"}, {"chunk_id": "dense", "text": "semantic"}]
+        equal = _rrf([dense, lexical], 2, k=1, weights=(1.0, 1.0))
+        favored = _rrf([dense, lexical], 2, k=1, weights=(2.0, 1.0))
+        self.assertEqual(equal[0]["score"], equal[1]["score"])
+        self.assertEqual(favored[0]["chunk_id"], "dense")
+
+    def test_reranker_sorts_candidates_by_model_score_and_limits_output(self):
+        import numpy as np
+        import app.reranking as reranking_module
+
+        class FakeTokenizer:
+            def __call__(self, _questions, _passages, **_kwargs):
+                return {"input_ids": np.array([[1], [2]], dtype=np.int64)}
+
+        class FakeSession:
+            def run(self, _outputs, inputs):
+                self.inputs = inputs
+                return [np.array([[0.2], [0.9]], dtype=np.float32)]
+
+        session = FakeSession()
+        candidates = [{"chunk_id": "first", "text": "passage one"}, {"chunk_id": "second", "text": "passage two"}]
+        with patch.object(reranking_module, "_load_runtime", return_value=(FakeTokenizer(), session, {"input_ids"})):
+            ranked = rerank("question", candidates, 1)
+        self.assertEqual(ranked[0]["chunk_id"], "second")
+        self.assertAlmostEqual(ranked[0]["rerank_score"], 0.9)
+        self.assertEqual(session.inputs["input_ids"].shape[0], 2)
+
+    def test_api_hybrid_rerank_uses_twenty_candidates_then_limits_sources(self):
+        import app.main as main_module
+
+        candidates = [
+            {"chunk_id": "UU_27_2022:article:2", "document_id": "UU_27_2022", "text": "candidate"},
+            {"chunk_id": "UU_27_2022:article:2", "document_id": "UU_27_2022", "text": "candidate"},
+        ]
+        with patch.object(main_module, "search", return_value=candidates) as search_mock, \
+             patch.object(main_module, "rerank", return_value=candidates[:1]) as rerank_mock, \
+             patch.object(main_module, "generate", return_value={"answer": "jawaban", "citation_ids": ["E1"], "abstained": False}):
+            result = query(QueryRequest(question="Apa isi ketentuan?", retrieval_mode="hybrid_rerank", top_k=1))
+        self.assertEqual(search_mock.call_args.args[2], 20)
+        self.assertEqual(search_mock.call_args.kwargs["retrieval_mode"], "hybrid")
+        self.assertEqual(rerank_mock.call_args.args[2], 1)
+        self.assertEqual(result["retrieval_mode"], "hybrid_rerank")
+
     def test_search_returns_exact_evidence_and_validates_input(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "chunks.jsonl"
@@ -55,6 +116,32 @@ class SearchTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 search("  ", path)
 
+    def test_dense_and_hybrid_compare_same_question_and_keep_document_filter(self):
+        import app.search as search_module
+
+        class FakeEncoder:
+            def encode(self, texts, **_kwargs):
+                return [[1.0, 0.0] if text.startswith("query: ") or "makna" in text.lower()
+                         else [0.0, 1.0] for text in texts]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "chunks.jsonl"
+            docs = [
+                {"chunk_id": "UU:exact", "document_id": "UU", "text": "Kewajiban pengendali data."},
+                {"chunk_id": "UU:semantic", "document_id": "UU", "text": "Makna tanggung jawab entitas."},
+            ]
+            path.write_text("\n".join(json.dumps(doc) for doc in docs), encoding="utf-8")
+            with patch.object(search_module, "_load_encoder", return_value=FakeEncoder()):
+                # Same sample question: BM25 finds the exact phrase; E5-style vector ranking finds related meaning.
+                bm25 = search("kewajiban data", path, top_k=1, retrieval_mode="bm25")
+                dense = search("kewajiban data", path, top_k=1, retrieval_mode="dense")
+                hybrid = search("kewajiban data", path, top_k=2, retrieval_mode="hybrid")
+                filtered = search("kewajiban data", path, top_k=2, document_ids={"UU"}, retrieval_mode="hybrid")
+            self.assertEqual(bm25[0]["chunk_id"], "UU:exact")
+            self.assertEqual(dense[0]["chunk_id"], "UU:semantic")
+            self.assertEqual({hit["chunk_id"] for hit in hybrid}, {"UU:exact", "UU:semantic"})
+            self.assertEqual({hit["chunk_id"] for hit in filtered}, {"UU:exact", "UU:semantic"})
+
     def test_ingestion_rejects_path_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -68,13 +155,40 @@ class GenerationTests(unittest.TestCase):
     def test_generator_accepts_only_retrieved_citations(self):
         answer = json.dumps({"answer":"Berdasarkan sumber.","citation_ids":["E1"],"abstained":False})
         response = io.BytesIO(json.dumps({"message":{"content":answer}}).encode())
-        with patch("app.generation.urlopen", return_value=response):
+        with patch("app.generation.urlopen", return_value=response) as opener:
             self.assertEqual(generate("apa?", [{"text":"evidence"}])["citation_ids"], ["E1"])
+        payload = json.loads(opener.call_args.args[0].data)
+        self.assertEqual(payload["model"], OLLAMA_MODEL)
+        self.assertEqual(payload["options"]["num_ctx"], OLLAMA_NUM_CTX)
 
         invalid = json.dumps({"answer":"Berdasarkan sumber.","citation_ids":["E2"],"abstained":False})
         response = io.BytesIO(json.dumps({"message":{"content":invalid}}).encode())
         with patch("app.generation.urlopen", return_value=response), self.assertRaises(InvalidModelResponse):
             generate("apa?", [{"text":"evidence"}])
+
+    def test_generator_serializes_ollama_requests(self):
+        active = 0
+        max_active = 0
+        guard = threading.Lock()
+        answer = json.dumps({"answer":"Berdasarkan sumber.","citation_ids":["E1"],"abstained":False})
+
+        def fake_urlopen(*_args, **_kwargs):
+            nonlocal active, max_active
+            with guard:
+                active += 1
+                max_active = max(max_active, active)
+            time.sleep(0.02)
+            with guard:
+                active -= 1
+            return io.BytesIO(json.dumps({"message":{"content":answer}}).encode())
+
+        with patch("app.generation.urlopen", side_effect=fake_urlopen):
+            threads = [threading.Thread(target=generate, args=("apa?", [{"text":"evidence"}])) for _ in range(2)]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+        self.assertEqual(max_active, 1)
 
     def test_api_abstains_when_filtered_corpus_has_no_evidence(self):
         result = query(QueryRequest(question="Pertanyaan di luar dokumen", document_ids=["PP_33_2026"]))

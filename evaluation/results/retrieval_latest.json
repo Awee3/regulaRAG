@@ -1,0 +1,474 @@
+{
+  "generated_at_utc": "2026-11-02T05:05:27.082535+00:00",
+  "dataset": "D:\\regulaRAG\\evaluation\\dataset\\retrieval_sample.jsonl",
+  "question_count": 7,
+  "chunk_count": 298,
+  "chunks_sha256": "ed48dbb15eaecc2650f0c7cc554e8c194ccc9ff145d3934bd2c93cfd70528af1",
+  "dense_model": "intfloat/multilingual-e5-base",
+  "dense_device": "cpu",
+  "rrf_k": 60,
+  "warmup_model_and_passage_embedding_seconds": 178.86,
+  "summary": {
+    "bm25": {
+      "recall_at_5": 0.14285714285714285,
+      "mrr_at_10": 0.16666666666666666,
+      "mean_query_latency_ms": 55.642857142857146
+    },
+    "dense": {
+      "recall_at_5": 0.6190476190476191,
+      "mrr_at_10": 0.5561224489795918,
+      "mean_query_latency_ms": 105.02571428571429
+    },
+    "hybrid": {
+      "recall_at_5": 0.42857142857142855,
+      "mrr_at_10": 0.26445578231292516,
+      "mean_query_latency_ms": 167.29285714285714
+    }
+  },
+  "questions": [
+    {
+      "question_id": "Q01",
+      "question": "Apa yang dimaksud dengan Data Pribadi?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:1"
+      ],
+      "modes": {
+        "bm25": {
+          "ranked_chunk_ids": [
+            "MK_151_PUU_XXII_2024:page:96",
+            "MK_151_PUU_XXII_2024:page:102",
+            "MK_151_PUU_XXII_2024:page:35",
+            "MK_151_PUU_XXII_2024:page:107",
+            "MK_151_PUU_XXII_2024:page:77",
+            "MK_151_PUU_XXII_2024:page:70",
+            "MK_151_PUU_XXII_2024:page:30",
+            "MK_151_PUU_XXII_2024:page:36",
+            "MK_151_PUU_XXII_2024:page:109",
+            "UU_27_2022:explanation:article:3"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.0,
+          "first_relevant_rank": null,
+          "latency_ms": 48.35
+        },
+        "dense": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:1",
+            "MK_151_PUU_XXII_2024:page:79",
+            "UU_27_2022:article:19",
+            "MK_151_PUU_XXII_2024:page:20",
+            "UU_27_2022:article:16",
+            "UU_27_2022:article:4",
+            "MK_151_PUU_XXII_2024:page:19",
+            "MK_151_PUU_XXII_2024:page:84",
+            "UU_27_2022:article:33",
+            "UU_27_2022:article:24"
+          ],
+          "recall_at_5": 1.0,
+          "mrr_at_10": 1.0,
+          "first_relevant_rank": 1,
+          "latency_ms": 93.48
+        },
+        "hybrid": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:explanation:article:26",
+            "MK_151_PUU_XXII_2024:page:96",
+            "UU_27_2022:article:1",
+            "MK_151_PUU_XXII_2024:page:102",
+            "MK_151_PUU_XXII_2024:page:79",
+            "MK_151_PUU_XXII_2024:page:35",
+            "UU_27_2022:article:19",
+            "MK_151_PUU_XXII_2024:page:107",
+            "MK_151_PUU_XXII_2024:page:20",
+            "MK_151_PUU_XXII_2024:page:77"
+          ],
+          "recall_at_5": 1.0,
+          "mrr_at_10": 0.3333333333333333,
+          "first_relevant_rank": 3,
+          "latency_ms": 188.53
+        }
+      }
+    },
+    {
+      "question_id": "Q02",
+      "question": "Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:46"
+      ],
+      "modes": {
+        "bm25": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:71",
+            "MK_151_PUU_XXII_2024:page:78",
+            "MK_151_PUU_XXII_2024:page:39",
+            "UU_27_2022:article:67",
+            "MK_151_PUU_XXII_2024:page:151",
+            "UU_27_2022:article:21",
+            "MK_151_PUU_XXII_2024:page:22",
+            "MK_151_PUU_XXII_2024:page:51",
+            "MK_151_PUU_XXII_2024:page:77",
+            "UU_27_2022:article:74"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.0,
+          "first_relevant_rank": null,
+          "latency_ms": 45.34
+        },
+        "dense": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:46",
+            "UU_27_2022:article:30",
+            "UU_27_2022:article:41",
+            "UU_27_2022:article:32",
+            "MK_151_PUU_XXII_2024:page:27",
+            "UU_27_2022:article:48",
+            "UU_27_2022:article:40",
+            "UU_27_2022:article:16",
+            "UU_27_2022:article:21",
+            "UU_27_2022:article:12"
+          ],
+          "recall_at_5": 1.0,
+          "mrr_at_10": 1.0,
+          "first_relevant_rank": 1,
+          "latency_ms": 107.67
+        },
+        "hybrid": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:32",
+            "UU_27_2022:article:21",
+            "UU_27_2022:article:67",
+            "MK_151_PUU_XXII_2024:page:22",
+            "UU_27_2022:article:74",
+            "MK_151_PUU_XXII_2024:page:66",
+            "UU_27_2022:article:46",
+            "UU_27_2022:article:71",
+            "MK_151_PUU_XXII_2024:page:78",
+            "UU_27_2022:article:30"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.14285714285714285,
+          "first_relevant_rank": 7,
+          "latency_ms": 178.1
+        }
+      }
+    },
+    {
+      "question_id": "Q03",
+      "question": "Apa kewajiban pengendali untuk menjaga keamanan informasi pribadi yang sedang diproses?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:35"
+      ],
+      "modes": {
+        "bm25": {
+          "ranked_chunk_ids": [
+            "MK_151_PUU_XXII_2024:page:151",
+            "MK_151_PUU_XXII_2024:page:65",
+            "MK_151_PUU_XXII_2024:page:121",
+            "MK_151_PUU_XXII_2024:page:25",
+            "MK_151_PUU_XXII_2024:page:119",
+            "MK_151_PUU_XXII_2024:page:67",
+            "MK_151_PUU_XXII_2024:page:102",
+            "MK_151_PUU_XXII_2024:page:152",
+            "MK_151_PUU_XXII_2024:page:96",
+            "MK_151_PUU_XXII_2024:page:146"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.0,
+          "first_relevant_rank": null,
+          "latency_ms": 48.64
+        },
+        "dense": {
+          "ranked_chunk_ids": [
+            "MK_151_PUU_XXII_2024:page:60",
+            "MK_151_PUU_XXII_2024:page:19",
+            "MK_151_PUU_XXII_2024:page:65",
+            "MK_151_PUU_XXII_2024:page:66",
+            "UU_27_2022:article:39",
+            "UU_27_2022:article:53",
+            "UU_27_2022:article:35",
+            "UU_27_2022:article:52",
+            "MK_151_PUU_XXII_2024:page:152",
+            "UU_27_2022:article:19"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.14285714285714285,
+          "first_relevant_rank": 7,
+          "latency_ms": 101.56
+        },
+        "hybrid": {
+          "ranked_chunk_ids": [
+            "MK_151_PUU_XXII_2024:page:65",
+            "MK_151_PUU_XXII_2024:page:152",
+            "UU_27_2022:article:39",
+            "MK_151_PUU_XXII_2024:page:151",
+            "MK_151_PUU_XXII_2024:page:60",
+            "MK_151_PUU_XXII_2024:page:19",
+            "MK_151_PUU_XXII_2024:page:121",
+            "MK_151_PUU_XXII_2024:page:25",
+            "MK_151_PUU_XXII_2024:page:66",
+            "MK_151_PUU_XXII_2024:page:119"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.0,
+          "first_relevant_rank": null,
+          "latency_ms": 147.7
+        }
+      }
+    },
+    {
+      "question_id": "Q04",
+      "question": "Apakah semua kriteria penunjukan petugas pelindungan data harus dipenuhi bersama-sama?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:53",
+        "MK_151_PUU_XXII_2024:page:157",
+        "MK_151_PUU_XXII_2024:page:159"
+      ],
+      "modes": {
+        "bm25": {
+          "ranked_chunk_ids": [
+            "MK_151_PUU_XXII_2024:page:8",
+            "MK_151_PUU_XXII_2024:page:42",
+            "MK_151_PUU_XXII_2024:page:50",
+            "MK_151_PUU_XXII_2024:page:43",
+            "MK_151_PUU_XXII_2024:page:139",
+            "MK_151_PUU_XXII_2024:page:135",
+            "MK_151_PUU_XXII_2024:page:63",
+            "MK_151_PUU_XXII_2024:page:19",
+            "MK_151_PUU_XXII_2024:page:97",
+            "MK_151_PUU_XXII_2024:page:125"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.0,
+          "first_relevant_rank": null,
+          "latency_ms": 74.54
+        },
+        "dense": {
+          "ranked_chunk_ids": [
+            "MK_151_PUU_XXII_2024:page:101",
+            "UU_27_2022:article:53",
+            "UU_27_2022:explanation:article:53",
+            "UU_27_2022:article:54",
+            "MK_151_PUU_XXII_2024:page:67",
+            "MK_151_PUU_XXII_2024:page:42",
+            "MK_151_PUU_XXII_2024:page:83",
+            "MK_151_PUU_XXII_2024:page:105",
+            "MK_151_PUU_XXII_2024:page:19",
+            "MK_151_PUU_XXII_2024:page:90"
+          ],
+          "recall_at_5": 0.3333333333333333,
+          "mrr_at_10": 0.5,
+          "first_relevant_rank": 2,
+          "latency_ms": 128.19
+        },
+        "hybrid": {
+          "ranked_chunk_ids": [
+            "MK_151_PUU_XXII_2024:page:42",
+            "MK_151_PUU_XXII_2024:page:8",
+            "MK_151_PUU_XXII_2024:page:19",
+            "MK_151_PUU_XXII_2024:page:139",
+            "MK_151_PUU_XXII_2024:page:43",
+            "MK_151_PUU_XXII_2024:page:69",
+            "MK_151_PUU_XXII_2024:page:101",
+            "UU_27_2022:article:53",
+            "MK_151_PUU_XXII_2024:page:50",
+            "UU_27_2022:explanation:article:53"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.125,
+          "first_relevant_rank": 8,
+          "latency_ms": 149.94
+        }
+      }
+    },
+    {
+      "question_id": "Q05",
+      "question": "Dalam keadaan apa pemrosesan data pribadi boleh dikirim ke luar wilayah Indonesia?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:56"
+      ],
+      "modes": {
+        "bm25": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:55",
+            "UU_27_2022:article:2",
+            "MK_151_PUU_XXII_2024:page:77",
+            "MK_151_PUU_XXII_2024:page:59",
+            "UU_27_2022:article:60",
+            "UU_27_2022:article:56",
+            "MK_151_PUU_XXII_2024:page:69",
+            "UU_27_2022:explanation:article:46",
+            "MK_151_PUU_XXII_2024:page:30",
+            "MK_151_PUU_XXII_2024:page:57"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.16666666666666666,
+          "first_relevant_rank": 6,
+          "latency_ms": 52.72
+        },
+        "dense": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:2",
+            "UU_27_2022:article:55",
+            "MK_151_PUU_XXII_2024:page:77",
+            "UU_27_2022:article:56",
+            "MK_151_PUU_XXII_2024:page:82",
+            "UU_27_2022:article:16",
+            "UU_27_2022:article:41",
+            "MK_151_PUU_XXII_2024:page:151",
+            "UU_27_2022:article:54",
+            "UU_27_2022:article:42"
+          ],
+          "recall_at_5": 1.0,
+          "mrr_at_10": 0.25,
+          "first_relevant_rank": 4,
+          "latency_ms": 97.44
+        },
+        "hybrid": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:2",
+            "UU_27_2022:article:55",
+            "MK_151_PUU_XXII_2024:page:77",
+            "UU_27_2022:article:56",
+            "UU_27_2022:article:54",
+            "UU_27_2022:article:76",
+            "MK_151_PUU_XXII_2024:page:59",
+            "MK_151_PUU_XXII_2024:page:82",
+            "UU_27_2022:article:60",
+            "UU_27_2022:article:16"
+          ],
+          "recall_at_5": 1.0,
+          "mrr_at_10": 0.25,
+          "first_relevant_rank": 4,
+          "latency_ms": 170.08
+        }
+      }
+    },
+    {
+      "question_id": "Q06",
+      "question": "Apa ancaman pidana jika seseorang dengan sengaja membocorkan data pribadi milik orang lain secara melawan hukum?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:65",
+        "UU_27_2022:article:67"
+      ],
+      "modes": {
+        "bm25": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:67",
+            "UU_27_2022:article:68",
+            "UU_27_2022:article:65",
+            "MK_151_PUU_XXII_2024:page:15",
+            "MK_151_PUU_XXII_2024:page:14",
+            "MK_151_PUU_XXII_2024:page:36",
+            "UU_27_2022:explanation:article:4",
+            "UU_27_2022:explanation:article:33",
+            "UU_27_2022:article:66",
+            "UU_27_2022:article:33"
+          ],
+          "recall_at_5": 1.0,
+          "mrr_at_10": 1.0,
+          "first_relevant_rank": 1,
+          "latency_ms": 63.88
+        },
+        "dense": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:67",
+            "UU_27_2022:article:68",
+            "MK_151_PUU_XXII_2024:page:66",
+            "UU_27_2022:article:65",
+            "MK_151_PUU_XXII_2024:page:12",
+            "UU_27_2022:article:66",
+            "MK_151_PUU_XXII_2024:page:39",
+            "MK_151_PUU_XXII_2024:page:130",
+            "MK_151_PUU_XXII_2024:page:113",
+            "MK_151_PUU_XXII_2024:page:11"
+          ],
+          "recall_at_5": 1.0,
+          "mrr_at_10": 1.0,
+          "first_relevant_rank": 1,
+          "latency_ms": 110.86
+        },
+        "hybrid": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:67",
+            "UU_27_2022:article:68",
+            "UU_27_2022:article:65",
+            "UU_27_2022:article:66",
+            "UU_27_2022:explanation:article:46",
+            "MK_151_PUU_XXII_2024:page:66",
+            "MK_151_PUU_XXII_2024:page:15",
+            "MK_151_PUU_XXII_2024:page:12",
+            "MK_151_PUU_XXII_2024:page:14",
+            "MK_151_PUU_XXII_2024:page:36"
+          ],
+          "recall_at_5": 1.0,
+          "mrr_at_10": 1.0,
+          "first_relevant_rank": 1,
+          "latency_ms": 167.73
+        }
+      }
+    },
+    {
+      "question_id": "Q07",
+      "question": "Apa dasar yang harus dimiliki sebelum pengendali mulai memproses data pribadi?",
+      "relevant_chunk_ids": [
+        "UU_27_2022:article:20"
+      ],
+      "modes": {
+        "bm25": {
+          "ranked_chunk_ids": [
+            "MK_151_PUU_XXII_2024:page:77",
+            "MK_151_PUU_XXII_2024:page:102",
+            "MK_151_PUU_XXII_2024:page:45",
+            "MK_151_PUU_XXII_2024:page:11",
+            "MK_151_PUU_XXII_2024:page:20",
+            "MK_151_PUU_XXII_2024:page:120",
+            "MK_151_PUU_XXII_2024:page:30",
+            "MK_151_PUU_XXII_2024:page:150",
+            "MK_151_PUU_XXII_2024:page:65",
+            "UU_27_2022:article:74"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.0,
+          "first_relevant_rank": null,
+          "latency_ms": 56.03
+        },
+        "dense": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:19",
+            "MK_151_PUU_XXII_2024:page:60",
+            "MK_151_PUU_XXII_2024:page:19",
+            "UU_27_2022:article:18",
+            "UU_27_2022:article:53",
+            "MK_151_PUU_XXII_2024:page:84",
+            "UU_27_2022:article:29",
+            "UU_27_2022:article:74",
+            "MK_151_PUU_XXII_2024:page:21",
+            "MK_151_PUU_XXII_2024:page:149"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.0,
+          "first_relevant_rank": null,
+          "latency_ms": 95.98
+        },
+        "hybrid": {
+          "ranked_chunk_ids": [
+            "UU_27_2022:article:74",
+            "MK_151_PUU_XXII_2024:page:65",
+            "MK_151_PUU_XXII_2024:page:20",
+            "UU_27_2022:article:51",
+            "MK_151_PUU_XXII_2024:page:77",
+            "UU_27_2022:article:19",
+            "MK_151_PUU_XXII_2024:page:102",
+            "MK_151_PUU_XXII_2024:page:60",
+            "MK_151_PUU_XXII_2024:page:19",
+            "MK_151_PUU_XXII_2024:page:45"
+          ],
+          "recall_at_5": 0.0,
+          "mrr_at_10": 0.0,
+          "first_relevant_rank": null,
+          "latency_ms": 168.97
+        }
+      }
+    }
+  ]
+}
