@@ -26,9 +26,11 @@ class LegalTextTests(unittest.TestCase):
         chunks = parse_pages("UU_27_2022", ["BAB I\nPasal I\nDalam Undang-Undang ini"], "https://official.test")
         self.assertEqual(chunks[0]["article"], "Pasal 1")
         self.assertEqual(chunks[0]["page_start"], 1)
-        corrected = parse_pages("UU", ["Pasal 7O\nPasal T2\nPasal 4O"], "https://official.test")
-        self.assertEqual([c["article"] for c in corrected], ["Pasal 70", "Pasal 72", "Pasal 40"])
+        corrected = parse_pages("UU", ["Pasal 7O\nPasal T2\nPasal 4O\nPasa722\nPasal2T"], "https://official.test")
+        self.assertEqual([c["article"] for c in corrected], ["Pasal 70", "Pasal 72", "Pasal 40", "Pasal 22", "Pasal 27"])
         self.assertTrue(corrected[0]["text"].startswith("Pasal 70"))
+        self.assertTrue(corrected[3]["text"].startswith("Pasal 22"))
+        self.assertTrue(corrected[4]["text"].startswith("Pasal 27"))
 
     def test_body_and_explanation_get_distinct_chunk_ids(self):
         chunks = parse_pages("UU", ["Pasal 1\nisi", "PENJEI,ASAN\nPasal 1\npenjelasan"], "https://official.test")
@@ -54,6 +56,17 @@ class SearchTests(unittest.TestCase):
         self.assertEqual(_metrics([{"bm25": {"recall_at_5": 0.5, "mrr_at_10": 0.5}},
                                   {"bm25": {"recall_at_5": 1.0, "mrr_at_10": 1.0}}], "bm25"),
                          {"recall_at_5": 0.75, "mrr_at_10": 0.75})
+
+    def test_unanswerable_metrics_handling(self):
+        # Empty relevant set for unanswerable questions should not cause ZeroDivisionError
+        self.assertEqual(recall_at_k(set(), ["c1", "c2"], 5), 0.0)
+        self.assertEqual(reciprocal_rank_at_k(set(), ["c1", "c2"], 10), 0.0)
+        rows = [
+            {"is_answerable": True, "bm25": {"recall_at_5": 1.0, "mrr_at_10": 1.0}},
+            {"is_answerable": False, "bm25": {"recall_at_5": 0.0, "mrr_at_10": 0.0}},
+        ]
+        # _metrics filters out is_answerable=False so that unanswerable queries don't skew recall/mrr
+        self.assertEqual(_metrics(rows, "bm25"), {"recall_at_5": 1.0, "mrr_at_10": 1.0})
 
     def test_weighted_rrf_can_favor_dense_ranking(self):
         from app.search import _rrf

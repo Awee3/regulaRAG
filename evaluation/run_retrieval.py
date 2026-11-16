@@ -22,17 +22,24 @@ CONFIGS = [(k, weight) for k in (10, 30, 60, 100) for weight in (0.5, 0.75, 1.0,
 
 
 def recall_at_k(relevant: set[str], ranked: list[str], k: int) -> float:
+    if not relevant:
+        return 0.0
     return len(relevant.intersection(ranked[:k])) / len(relevant)
 
 
 def reciprocal_rank_at_k(relevant: set[str], ranked: list[str], k: int) -> float:
+    if not relevant:
+        return 0.0
     return next((1 / rank for rank, chunk_id in enumerate(ranked[:k], 1) if chunk_id in relevant), 0.0)
 
 
 def _metrics(rows: list[dict], key: str) -> dict:
+    answerable = [row for row in rows if row.get("is_answerable", True)]
+    if not answerable:
+        return {"recall_at_5": 0.0, "mrr_at_10": 0.0}
     return {
-        "recall_at_5": statistics.mean(row[key]["recall_at_5"] for row in rows),
-        "mrr_at_10": statistics.mean(row[key]["mrr_at_10"] for row in rows),
+        "recall_at_5": statistics.mean(row[key]["recall_at_5"] for row in answerable),
+        "mrr_at_10": statistics.mean(row[key]["mrr_at_10"] for row in answerable),
     }
 
 
@@ -51,14 +58,20 @@ def _result(relevant: set[str], ranked: list[str]) -> dict:
 
 def _read_dataset(path: Path, chunks_path: Path) -> list[dict]:
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
-    if not rows or any(row.get("split") not in {"dev", "holdout"} or not row.get("relevant_chunk_ids") for row in rows):
-        raise ValueError("Setiap pertanyaan harus memiliki split dev/holdout dan relevant_chunk_ids.")
+    if not rows:
+        raise ValueError("Dataset tidak boleh kosong.")
+    chunk_ids = {json.loads(line)["chunk_id"] for line in chunks_path.read_text(encoding="utf-8").splitlines() if line.strip()}
+    for row in rows:
+        if row.get("split") not in {"dev", "holdout"}:
+            raise ValueError("Setiap pertanyaan harus memiliki split dev/holdout.")
+        is_ans = row.get("is_answerable", True)
+        if is_ans and not row.get("relevant_chunk_ids"):
+            raise ValueError(f"Pertanyaan answerable {row.get('question_id')} wajib memiliki relevant_chunk_ids.")
+        unknown = {cid for cid in row.get("relevant_chunk_ids", []) if cid not in chunk_ids}
+        if unknown:
+            raise ValueError(f"Label tidak ditemukan di corpus: {sorted(unknown)}")
     if not any(row["split"] == "dev" for row in rows) or not any(row["split"] == "holdout" for row in rows):
         raise ValueError("Dataset perlu memuat dev dan holdout.")
-    chunk_ids = {json.loads(line)["chunk_id"] for line in chunks_path.read_text(encoding="utf-8").splitlines() if line.strip()}
-    unknown = {cid for row in rows for cid in row["relevant_chunk_ids"] if cid not in chunk_ids}
-    if unknown:
-        raise ValueError(f"Label tidak ditemukan di corpus: {sorted(unknown)}")
     return rows
 
 
@@ -87,10 +100,12 @@ def run(dataset_path: Path, chunks_path: Path) -> dict:
             key = f"k={k},dense_weight={dense_weight:g}"
             result = _result(relevant, ids)
             hybrid_by_config[key] = result
-            if sample["split"] == "dev":
+            if sample["split"] == "dev" and sample.get("is_answerable", True):
                 config_scores[(k, dense_weight)].append(result)
         prepared.append({
             "question_id": sample["question_id"], "split": sample["split"],
+            "question_type": sample.get("question_type", "lookup"),
+            "is_answerable": sample.get("is_answerable", True),
             "question": sample["question"], "relevant_chunk_ids": sample["relevant_chunk_ids"],
             "bm25": _result(relevant, bm25_ids), "dense": _result(relevant, dense_ids),
             "hybrid_by_config": hybrid_by_config,
@@ -200,7 +215,7 @@ def markdown(report: dict) -> str:
     for row in report["questions"]:
         if row["split"] != "holdout":
             continue
-        ranks = [row[key]["first_relevant_rank"] or "miss" for key in ("bm25", "dense", "hybrid_baseline", "hybrid_tuned", "hybrid_rerank")]
+        ranks = [(row[key]["first_relevant_rank"] or "miss") if row.get("is_answerable", True) else "-" for key in ("bm25", "dense", "hybrid_baseline", "hybrid_tuned", "hybrid_rerank")]
         lines.append(f"| {row['question_id']} | {row['question']} | " + " | ".join(map(str, ranks)) + " |")
     lines.extend(["", "Dataset labels target the cited chunks, not all potentially relevant text. This is a small exploratory sample; inspect the labels and failure cases before making a general quality claim.", ""])
     return "\n".join(lines)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-ARTICLE = re.compile(r"(?m)^\s*Pasal\s+([0-9]+[A-Z]?|I|T2)\s*$", re.IGNORECASE)
+ARTICLE = re.compile(r"(?m)^\s*(?:Pasal\s*([0-9]+[A-Z]?|I|T2|2T)|Pasa7\s*([0-9]+))\s*$", re.IGNORECASE)
 BAB = re.compile(r"(?m)^\s*BAB\s+([IVXLCDM]+)\b[^\n]*", re.IGNORECASE)
 PARAGRAPH = re.compile(r"(?m)^\s*\(([0-9]+)\)")
 
@@ -67,9 +67,9 @@ def parse_pages(document_id: str, pages: list[str], source_url: str,
             article = ARTICLE.match(line)
             if article:
                 flush()
-                number = article.group(1)
-                # shortcut: repair visually checked I/1, O/0 and T/7 glyphs; add review for other OCR errors.
-                number = {"I": "1", "T2": "72"}.get(number.upper(), number.upper().replace("O", "0"))
+                raw_num = article.group(1) or article.group(2)
+                # shortcut: repair visually checked I/1, O/0, 2T/27, Pasa7/Pasal, and T/7 glyphs; add review for other OCR errors.
+                number = {"I": "1", "T2": "72", "2T": "27"}.get(raw_num.upper(), raw_num.upper().replace("O", "0").replace("T", "7"))
                 heading = f"Pasal {number}" if line.strip() != f"Pasal {number}" else line.strip()
                 current = {"article": number, "page_start": page_number,
                            "page_end": page_number, "bab": current_bab,
@@ -86,5 +86,7 @@ def article_metadata(text: str) -> tuple[str | None, str | None]:
     """Return the first explicit article and paragraph; never infer missing numbers."""
     article = ARTICLE.search(text)
     paragraph = PARAGRAPH.search(text)
-    return (article.group(1) if article else None,
+    raw_num = (article.group(1) or article.group(2)) if article else None
+    num = {"I": "1", "T2": "72", "2T": "27"}.get(raw_num.upper(), raw_num.upper().replace("O", "0").replace("T", "7")) if raw_num else None
+    return (num,
             f"ayat ({paragraph.group(1)})" if paragraph else None)

@@ -1,0 +1,47 @@
+# RegulaRAG Indonesia — Default Configuration
+# Sesuai pedoman AGENTS.md (modular, configurable, offline-first)
+
+storage:
+  manifest_path: "data/manifest.jsonl"
+  raw_dir: "data/raw"
+  chunks_path: "data/processed/chunks.jsonl"
+
+embedding:
+  model: "intfloat/multilingual-e5-base"
+  fallback_model: "intfloat/multilingual-e5-small"
+  device: "cpu"
+  normalize_embeddings: true
+  query_prefix: "query: "
+  passage_prefix: "passage: "
+
+retrieval:
+  bm25_top_k: 20
+  dense_top_k: 20
+  candidate_k: 20
+  default_top_k: 5
+  rrf_k: 10
+  dense_rrf_weight: 2.0
+  bm25_rrf_weight: 1.0
+
+reranker:
+  enabled: true
+  model: "Horizon-Labs/multilingual-reranker-small"
+  revision: "d35a2781eeb3de1d971ad328165277bdf5712e35"
+  max_length: 384
+  candidate_top_k: 20
+  default_top_k: 5
+  device: "CPUExecutionProvider"
+
+generation:
+  provider: "ollama"
+  ollama_url: "http://127.0.0.1:11434/api/chat"
+  model: "qwen3:4b-instruct-2507-q4_K_M"
+  fallback_model: "qwen3:1.7b-q4_K_M"
+  num_ctx: 4096
+  temperature: 0
+  max_concurrent: 1
+
+evaluation:
+  dataset_path: "evaluation/dataset/retrieval_sample.jsonl"
+  results_path: "evaluation/results/retrieval_tuning_latest.json"
+  report_path: "docs/evaluation_report.md"

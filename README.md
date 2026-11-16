@@ -1,6 +1,6 @@
 # RegulaRAG Indonesia
 
-Prototipe lokal untuk ingestion terkontrol dan pencarian kutipan UU PDP. Ini belum merupakan sistem RAG lengkap atau nasihat hukum. Corpus saat ini berisi PDF resmi UU PDP dan Putusan MK 151/PUU-XXII/2024; metadata, URL, dan checksum ada di manifest.
+Prototipe lokal untuk ingestion terkontrol dan pencarian kutipan UU PDP serta putusan Mahkamah Konstitusi terkait. Ini merupakan alat bantu penelusuran dokumen berbasis bukti, bukan nasihat hukum. Corpus aktif saat ini berisi 4 dokumen resmi terverifikasi (593 chunk): UU 27/2022 (UU PDP), Putusan MK 151/PUU-XXII/2024, Putusan MK 135/PUU-XXIII/2025, dan Putusan MK 133/PUU-XXIV/2026. Metadata lengkap, tautan resmi, dan checksum SHA-256 tercatat di manifest.
 
 ## Setup
 
@@ -26,7 +26,7 @@ Jalankan API: `python -m uvicorn app.main:app --host 127.0.0.1 --port 8000`; dok
 
 Jalankan pemeriksaan lokal: `python -m unittest discover -s tests`
 
-Evaluasi 14 pertanyaan development dan 6 holdout serta tuning grid RRF dan reranker: `python -m evaluation.run_retrieval`. Hasil metrik dan ranking per pertanyaan ditulis ke `docs/evaluation_report.md` dan `evaluation/results/retrieval_tuning_latest.json`. E5 dan ONNX reranker memakai CPU; jika model sudah ada di cache lokal dan ingin menghindari cek jaringan di PowerShell: `$env:HF_HUB_OFFLINE = "1"; python -m evaluation.run_retrieval`. Dataset masih kecil, jadi angka menunjukkan perilaku sampel ini dan belum menjadi klaim umum.
+Evaluasi 50 pertanyaan (29 development dan 21 holdout, mencakup lookup, numerical, multi-evidence, cross-document, temporal/status, serta unanswerable/out-of-corpus) serta tuning grid RRF dan reranker: `python -m evaluation.run_retrieval`. Hasil metrik dan ranking per pertanyaan ditulis ke `docs/evaluation_report.md` dan `evaluation/results/retrieval_tuning_latest.json`. E5 dan ONNX reranker memakai CPU; jika model sudah ada di cache lokal dan ingin menghindari cek jaringan di PowerShell: `$env:HF_HUB_OFFLINE = "1"; python -m evaluation.run_retrieval`. Konfigurasi default terpusat di `configs/default.yaml` dan variabel lingkungan opsional dapat disalin dari `.env.example`.
 
 Pasang UI dan semua mode retrieval opsional: `python -m pip install -e ".[ui,dense,rerank]"`. Jalankan UI: `python -m streamlit run app/ui.py`. UI memanggil pipeline secara langsung di proses Streamlit, jadi tidak perlu menjalankan Uvicorn terpisah; Ollama tetap harus aktif untuk menyusun jawaban. Untuk penggunaan yang hanya memerlukan BM25, pasang `python -m pip install -e ".[ui]"`.
 
