@@ -3,8 +3,8 @@
 import hashlib
 import json
 import ssl
-from pathlib import Path
 import urllib.request
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = ROOT / "data/raw"
@@ -29,9 +29,6 @@ DOCUMENTS = [
 
 def download_and_verify():
     ctx = ssl.create_default_context()
-    # Some gov sites have legacy cert bundles
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
 
     results = []
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) RegulaRAG-Ingestion/0.1"}
@@ -62,7 +59,7 @@ def download_and_verify():
                 "sha256": sha256,
                 "size": len(content),
             })
-        except Exception as e:
+        except (OSError, ValueError) as e:
             print(f"FAILED: {doc['id']} error: {e}")
             results.append({"id": doc["id"], "success": False, "reason": str(e)})
 

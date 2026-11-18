@@ -1,0 +1,16 @@
+{
+  "review_status": "ai_reviewed",
+  "reviewer_kind": "ai",
+  "count": 13,
+  "runtime_failures": 0,
+  "reviewed": 13,
+  "pending": 0,
+  "abstention": {
+    "accuracy": 0.9230769230769231,
+    "precision": 0.75,
+    "recall": 1.0
+  },
+  "answer_correctness": 0.9230769230769231,
+  "groundedness": 1.0,
+  "ai_citation_support": 1.0
+}

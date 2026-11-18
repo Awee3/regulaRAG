@@ -1,28 +1,13 @@
-# Cara kerja RegulaRAG
+# Arsitektur RegulaRAG
 
-RegulaRAG mencari bagian dokumen yang relevan, lalu meminta model lokal menyusun ringkasan dari bagian itu. Dua pekerjaan tersebut berbeda:
+Corpus resmi dipulihkan dari manifest dengan checksum, lalu PDF diekstrak per halaman menjadi chunk pasal atau halaman putusan. BAB, Bagian, batang tubuh dan Penjelasan dipisahkan sejauh format dikenali. Text layer yang rusak tidak diperbaiki dengan tebakan.
 
-- **Retrieval** memilih halaman/pasal yang mungkin menjawab pertanyaan. BM25 adalah baseline pencarian kata yang mempertahankan istilah dan nomor pasal. Mode dense opsional memakai multilingual E5 di CPU untuk kemiripan makna. Mode hybrid memakai weighted RRF (konfigurasi eksperimen saat ini: k=10, dense=2, BM25=1), hasil tuning awal dev/holdout yang masih perlu dievaluasi pada sampel lebih besar.
-- **Generation** merangkum teks yang sudah dipilih. Saat ini diarahkan ke Ollama di komputer yang sama; pertanyaan dan dokumen tidak dikirim ke API LLM cloud.
+Retrieval BM25 default mencari kandidat pada sumber normatif; empat mode tetap tersedia untuk eksperimen. Jalur jawaban menyaring argumen pihak sebelum memilih evidence. Amar terkait pasal dari kandidat utama dapat ditambahkan berdasarkan catatan relasi manifest; ini aturan statis terbatas dan bukan pemantauan yurisprudensi otomatis. Filter dokumen tetap dihormati; bila putusan terkait diperlukan tetapi dikecualikan, sistem abstain.
 
-## Satu pertanyaan, langkah demi langkah
+LLM tunggal Qwen3 1.7B memilih ID cuplikan yang diberikan. Backend mengubah ID menjadi teks asli sumber, menentukan citation sebenarnya, dan memeriksa bahwa jawabannya memang cuplikan sumber. Model tidak bebas menulis angka, nama atau ringkasan hukum. Salah memilih cuplikan masih mungkin terjadi; autentisitas teks berbeda dari relevansi jawaban.
 
-1. `POST /query` memvalidasi pertanyaan dan filter dokumen.
-2. `app/search.py` memberi peringkat pada chunk lokal dalam mode `bm25`, `dense`, atau `hybrid`. E5 bersifat opsional; mode BM25 tidak membutuhkan unduhan model. Dense/hybrid mengunduh model E5 saat pemakaian pertama dan menyimpan embedding chunk di memori proses.
-3. `app/generation.py` mengirim pertanyaan dan evidence itu ke model Ollama lokal. Default-nya Qwen3 4B Q4_K_M dengan context 4096 token; `OLLAMA_MODEL` dan `OLLAMA_NUM_CTX` dapat diubah. Sebuah lock membatasi proses generation lokal menjadi satu per worker. Teks dokumen diperlakukan sebagai data, bukan instruksi.
-4. Backend menolak ID citation yang tidak ada dalam evidence teratas. Kutipan dikembalikan dari chunk tersimpan, bukan disalin ulang oleh model.
-5. Jika tidak ada evidence, sistem abstain. Jika Ollama belum berjalan, sistem juga tidak mengarang jawaban dan mengembalikan evidence yang ditemukan beserta status `generator_unavailable`.
+Abstention konservatif meliputi pertanyaan di luar topik corpus, permintaan nama pejabat, dokumen bernomor yang tidak ada dalam evidence, definisi tanpa teks definisi eksplisit, dan output yang tidak sesuai sumber. Pertanyaan dasar pemrosesan serta transfer luar negeri memerlukan teks norma yang menyatakan topik tersebut, bukan ketentuan masa transisi atau cakupan teritorial.
 
-## UI lokal
+FastAPI dan Streamlit memanggil fungsi query yang sama. Jalankan satu proses aplikasi untuk penggunaan lokal. Query tidak disimpan secara default dan hanya dikirim ke Ollama localhost. Model retrieval dilepas sebelum generation. Pengguna menyatakan LLM menggunakan GPU; konfigurasi LLM mengikuti auto/offloading Ollama. Embedding/reranker tetap dapat memakai CPU. Perbaikan kompatibilitas GPU dan benchmark resource berada di luar scope; tidak ada klaim full GPU. Konfigurasi dibaca saat startup dari YAML dan environment/.env.
 
-`app/ui.py` menyediakan antarmuka Streamlit tipis yang memanggil fungsi query yang sama di proses UI. Ini membuat API dan UI tetap memakai retrieval, validasi citation, generation, dan abstention yang satu. Jalankan dengan `python -m streamlit run app/ui.py` setelah memasang opsi `.[ui,dense]`; Uvicorn tidak perlu dijalankan untuk UI.
-
-## Dokumen
-
-`data/manifest.jsonl` adalah daftar dokumen: sumber resmi, status, relasi, tanggal berlaku, lokasi berkas, dan checksum. `ingestion/build_corpus.py` hanya memproses dokumen yang `verified`, `corpus_eligible`, memiliki PDF lokal, dan checksum-nya cocok. PDF diproses halaman demi halaman.
-
-`ingestion/legal_text.py` memecah UU berdasarkan judul Pasal yang dikenali. Batang tubuh dan penjelasan mendapat ID berbeda. Putusan dipotong per halaman karena nomor pasal yang disebut di dalam argumen putusan bukan struktur putusan itu sendiri.
-
-## Batas prototipe saat ini
-
-Corpus memiliki 4 dokumen aktif: UU PDP (76 pasal batang tubuh lengkap), Putusan MK 151/PUU-XXII/2024, Putusan MK 135/PUU-XXIII/2025, dan Putusan MK 133/PUU-XXIV/2026 (total 593 chunk). Pipeline mendukung 4 mode retrieval: BM25, dense E5 di CPU, hybrid weighted RRF, serta hybrid + cross-encoder ONNX CPU reranker. Benchmark 50 pertanyaan (29 dev dan 21 holdout) tersedia; OCR menyeluruh belum dibuat (perbaikan glyph visual terbatas telah diterapkan untuk Pasal 22 dan Pasal 27). Sistem ini alat bantu penelusuran dokumen, bukan penasihat hukum. Kompatibilitas Ollama, GPU offloading, dan penggunaan RAM/VRAM pada ASUS TUF Gaming FX505GT belum diukur.
+Lihat README untuk setup dan quality_acceptance.md untuk hasil serta batas kualitas. Laporan retrieval lama adalah arsip eksperimen pada konfigurasi/corpus saat run, bukan bukti kualitas pipeline terbaru.

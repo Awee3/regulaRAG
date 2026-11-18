@@ -1,39 +1,97 @@
 # RegulaRAG Indonesia
 
-Prototipe lokal untuk ingestion terkontrol dan pencarian kutipan UU PDP serta putusan Mahkamah Konstitusi terkait. Ini merupakan alat bantu penelusuran dokumen berbasis bukti, bukan nasihat hukum. Corpus aktif saat ini berisi 4 dokumen resmi terverifikasi (593 chunk): UU 27/2022 (UU PDP), Putusan MK 151/PUU-XXII/2024, Putusan MK 135/PUU-XXIII/2025, dan Putusan MK 133/PUU-XXIV/2026. Metadata lengkap, tautan resmi, dan checksum SHA-256 tercatat di manifest.
+Aplikasi lokal untuk menelusuri dokumen resmi Pelindungan Data Pribadi Indonesia. LLM proyek hanya **Qwen3 1.7B Q4_K_M** melalui Ollama, dijalankan menggunakan GPU sesuai keterangan pengguna. Jawaban berupa kutipan sumber yang dipilih model dan divalidasi backend, dengan citation, bukan nasihat hukum. Jika bukti tidak cukup sistem abstain.
 
-## Setup
+## Setup dari nol (Windows PowerShell)
 
-Gunakan Python 3.11+, lalu jalankan `python -m pip install -e .`. PyMuPDF dipin ke 1.26.5 agar tidak mengambil perubahan major 2.x yang baru dirilis; paket ini berlisensi ganda AGPL-3.0 atau lisensi komersial Artifex, jadi tinjau lisensi sebelum distribusi.
+Prasyarat: Git, Python 3.11 dan Ollama terpasang. Buka terminal di folder clone repository (folder yang memuat pyproject.toml). Instalasi paket, model dan dokumen memerlukan internet sekali; query selanjutnya memakai runtime lokal.
 
-BM25 berjalan tanpa model tambahan. Untuk dense atau hybrid search, pasang opsi CPU: `python -m pip install -e ".[dense]"`. Model `intfloat/multilingual-e5-base` diunduh saat pertama kali memakai dense/hybrid; mesin perlu akses internet sekali untuk mengambil model. Ganti model melalui `REGULARAG_EMBEDDING_MODEL` (misalnya `intfloat/multilingual-e5-small`).
+```powershell
+python --version
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[ui,dev]"
+ollama --version
+ollama pull qwen3:1.7b-q4_K_M
+ollama list
+.\.venv\Scripts\python.exe -m scripts.download_corpus
+.\.venv\Scripts\python.exe -m ingestion.build_corpus
+.\.venv\Scripts\python.exe -m unittest discover -s tests
+.\.venv\Scripts\python.exe -m ruff check .
+```
 
-Dokumen awal sudah disimpan di `data/raw/`. Untuk menambahkan dokumen, unduh dari URL resmi di manifest, periksa dokumen dan checksum, lalu isi `sha256` serta ubah `corpus_eligible` ke `true` hanya untuk naskah penuh terverifikasi. Simpan berkas di `data/raw/` sesuai `local_path`. Berita/ringkasan dan kandidat berstatus `unverified` jangan diaktifkan.
+Perintah memakai interpreter virtualenv secara langsung sehingga tidak memerlukan perubahan execution policy PowerShell. Jika Ollama belum aktif, jalankan `ollama serve` di terminal tersendiri dan biarkan berjalan. Jika muncul pesan port sudah dipakai, periksa `ollama list` untuk memastikan service aktif.
 
-Bangun chunk: `python -m ingestion.build_corpus --manifest data/manifest.jsonl`
+PDF tidak disertakan Git. Downloader hanya memulihkan dokumen aktif dari URL manifest dan memeriksa checksum SHA-256; tidak otomatis menetapkan keberlakuan hukum. Jika unduhan portal resmi gagal, buka URL download resmi di `data/manifest.jsonl`, simpan ke `local_path`, lalu ulangi downloader untuk memeriksa checksum. Jangan mengganti checksum agar file berbeda diterima; periksa sumber terlebih dahulu. Ingestion menolak checksum berbeda, PDF terenkripsi dan scan tanpa text layer. OCR menyeluruh belum tersedia.
 
-Bandingkan pertanyaan yang sama pada ketiga mode dengan menjalankan:
+## Menjalankan aplikasi
 
-- `python -m app.search "Apa kewajiban saat terjadi kegagalan pelindungan data?" --mode bm25`
-- `python -m app.search "Apa kewajiban saat terjadi kegagalan pelindungan data?" --mode dense`
-- `python -m app.search "Apa kewajiban saat terjadi kegagalan pelindungan data?" --mode hybrid`
+UI memanggil pipeline langsung; cukup jalankan Ollama dan UI:
 
-Hybrid mengambil 20 kandidat teratas dari tiap metode (atau semua jika chunk kurang dari 20), lalu menggabungkan peringkat dengan weighted Reciprocal Rank Fusion. Berdasarkan tuning awal dev/holdout, konfigurasi saat ini memakai k=10 dan bobot dense=2, BM25=1; BM25-only tetap tersedia sebagai baseline. Hasilnya masih eksploratif karena dataset kecil. Embedding diproses di CPU; cache vektor berlaku selama proses berjalan.
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run app/ui.py --server.address 127.0.0.1 --browser.gatherUsageStats false
+```
 
-Gunakan Ollama lokal: `ollama pull qwen3:4b-instruct-2507-q4_K_M`, lalu `ollama run qwen3:4b-instruct-2507-q4_K_M`. Tag utama Qwen3 4B Q4_K_M berukuran sekitar 2.5 GB dan mencantumkan Apache 2.0 di [Ollama Registry](https://ollama.com/library/qwen3%3A4b-instruct-2507-q4_K_M). Untuk uji memori terbatas, gunakan `ollama pull qwen3:1.7b-q4_K_M`. Model dapat diganti lewat `OLLAMA_MODEL`; context default 4096 token dapat diubah lewat `OLLAMA_NUM_CTX`. Ollama mengatur GPU offloading secara otomatis; ketersediaan GPU dan kebutuhan memori aktual belum diuji pada laptop target.
+Buka http://127.0.0.1:8501. Mulai dengan BM25 dan pertanyaan **Apa isi Pasal 46 mengenai kegagalan pelindungan data pribadi?** Untuk menanyakan perubahan suatu pasal, izinkan dokumen UU dan putusan terkait. Membatasi hanya UU dapat menyebabkan abstention bila putusan diperlukan.
 
-Jalankan API: `python -m uvicorn app.main:app --host 127.0.0.1 --port 8000`; dokumentasi interaktif tersedia di `http://127.0.0.1:8000/docs`. Endpoint: `GET /health`, `GET /documents`, dan `POST /query`. Query dikirim hanya ke Ollama lokal di `127.0.0.1`; log aplikasi tidak menyimpan teks pertanyaan.
+API opsional (gunakan satu worker):
 
-Jalankan pemeriksaan lokal: `python -m unittest discover -s tests`
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
 
-Evaluasi 50 pertanyaan (29 development dan 21 holdout, mencakup lookup, numerical, multi-evidence, cross-document, temporal/status, serta unanswerable/out-of-corpus) serta tuning grid RRF dan reranker: `python -m evaluation.run_retrieval`. Hasil metrik dan ranking per pertanyaan ditulis ke `docs/evaluation_report.md` dan `evaluation/results/retrieval_tuning_latest.json`. E5 dan ONNX reranker memakai CPU; jika model sudah ada di cache lokal dan ingin menghindari cek jaringan di PowerShell: `$env:HF_HUB_OFFLINE = "1"; python -m evaluation.run_retrieval`. Konfigurasi default terpusat di `configs/default.yaml` dan variabel lingkungan opsional dapat disalin dari `.env.example`.
+Buka http://127.0.0.1:8000/docs. Endpoint: GET /health, GET /documents, POST /query. Contoh PowerShell:
 
-Pasang UI dan semua mode retrieval opsional: `python -m pip install -e ".[ui,dense,rerank]"`. Jalankan UI: `python -m streamlit run app/ui.py`. UI memanggil pipeline secara langsung di proses Streamlit, jadi tidak perlu menjalankan Uvicorn terpisah; Ollama tetap harus aktif untuk menyusun jawaban. Untuk penggunaan yang hanya memerlukan BM25, pasang `python -m pip install -e ".[ui]"`.
+```powershell
+$body = @{question='Apa isi Pasal 46?'; retrieval_mode='bm25'; top_k=5} | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/query -ContentType 'application/json' -Body $body
+```
 
-Parser mempertahankan nomor halaman PDF aktual, memisahkan batang tubuh dan penjelasan, serta memakai chunk per halaman untuk putusan agar pasal yang hanya dirujuk tidak salah dilabeli sebagai struktur putusan. API dan UI mendukung BM25, dense, hybrid RRF, serta hybrid dengan reranker multilingual ONNX pada CPU. Ollama tetap lokal, citation dibatasi ke evidence yang diambil, dan kutipan berasal langsung dari chunk tersimpan. Model reranker diunduh saat pertama kali dipakai; bila belum tersedia, mode tersebut mengembalikan error yang jelas dan mode lain tetap dapat dipakai. OCR belum tersedia. Evaluasi retrieval awal ada di `docs/evaluation_report.md`. Sebagian teks PDF dapat memiliki kekeliruan pada text layer; cocokkan kutipan persis dengan PDF resmi sebelum mengandalkannya. Pencarian kosong menghasilkan abstention.
+Gunakan satu proses aplikasi untuk menghindari duplikasi model. LLM menggunakan pengaturan GPU/offloading otomatis Ollama (`generation.num_gpu: null`). Ini tidak menjamin seluruh layer berada di GPU; embedding dan reranker tetap dapat memakai CPU. Perbaikan kompatibilitas GPU dan benchmark resource tidak termasuk scope. Jika `.env` atau environment masih memuat `OLLAMA_NUM_GPU=0`, hapus override tersebut untuk memakai auto. Untuk jalur CPU alternatif, gunakan nilai `0`. Restart proses setelah mengubah konfigurasi. Jangan menganggap service lama dari folder lain memakai kode terbaru.
 
-Untuk memahami alur proyek dalam istilah sederhana, mulai dari [docs/architecture.md](docs/architecture.md).
+## Cara kerja dan batas akurasi
 
-## Batasan sumber
+1. Manifest mengizinkan hanya dokumen aktif terverifikasi dan checksum yang cocok.
+2. Retrieval memilih kandidat BM25 (default), dense, hybrid RRF atau hybrid + reranker.
+3. Jalur jawaban mengecualikan argumen pihak dalam putusan. Untuk pasal dengan relasi uji materi yang dicatat manifest, amar relevan disertakan. Metadata relasi statis, bukan analisis hukum otomatis.
+4. Model 1.7B memilih cuplikan asli. JSON schema membatasi teks jawaban ke pilihan kutipan; backend memeriksa kecocokan kutipan dan ID evidence. Angka dan syarat sumber tidak diparafrasakan.
+5. Bukti tidak cukup atau output tidak valid menghasilkan abstention/error yang eksplisit. Citation ID valid dan teks asli tetap belum menjamin kutipannya menjawab pertanyaan; lihat hasil uji kualitas terbaru.
 
-Metadata UU PDP dicek ulang di BPK pada 2026-11-02; PDF sumber dan checksum diperiksa pada 2026-10-29. Lihat [docs/data_sources.md](docs/data_sources.md) dan manifest untuk sumber, jenis dokumen, status, relasi putusan, serta checksum. Perubahan hukum setelah tanggal verifikasi belum tercakup. Corpus tidak lengkap dan bukan penasihat hukum.
+Kutipan panjang dibatasi context 4096 token; evidence awal dapat berupa cuplikan bertanda excerpt_only. Model dapat memilih ayat yang kurang relevan, menolak pertanyaan answerable, atau tidak menangkap semua bukti lintas dokumen. Teks hasil ekstraksi PDF dapat kehilangan kata; cocokkan bunyi persis dengan PDF resmi. Putusan yang belum dapat dipisahkan dengan aman tidak dipakai sebagai dasar jawaban default.
+
+## Mode retrieval opsional
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dense,rerank]"
+.\.venv\Scripts\python.exe -m app.search "kegagalan pelindungan data" --mode hybrid
+```
+
+Embedding E5 dan reranker adalah komponen retrieval, bukan LLM alternatif. Model retrieval diunduh saat pertama dipakai. Empat mode tetap tersedia untuk eksperimen; tidak ada klaim hybrid/reranker selalu lebih baik. Model dilepas sebelum generation. Config di `configs/default.yaml`; `.env` opsional mendukung KEY=value sederhana, menimpa default tetapi tidak environment yang sudah di-set. Pertanyaan hanya dikirim ke Ollama localhost, tidak dicatat lengkap oleh aplikasi.
+
+## Verifikasi kualitas
+
+```powershell
+.\.venv\Scripts\python.exe -m evaluation.run_answers --mode bm25 --limit 10 --output evaluation/results/my_answers.jsonl
+.\.venv\Scripts\python.exe -m evaluation.review_report evaluation/results/quality_final_review.jsonl --review-status ai_reviewed --output evaluation/results/quality_final_summary.json
+```
+
+Runner menyimpan hanya pertanyaan benchmark publik yang sudah tersedia; aplikasi tidak menyimpan pertanyaan penggunaan biasa. Jangan menambahkan pertanyaan sensitif ke benchmark. Laporan review AI dipisahkan dari validasi manusia. Bukti sumber harus diperiksa sebelum membuat label jawaban acuan. Uji kasus kegagalan di `tests/` dan hasil eksperimen di `docs/` membantu memahami batas pipeline.
+
+Evaluasi retrieval historis (bukan evaluasi ulang model LLM): `python -m evaluation.run_retrieval`. Laporan lama menyimpan checksum corpus dan konfigurasi saat run, bukan bukti kualitas jalur jawaban yang berubah setelahnya. Artefak 4B/hardware lama hanya arsip; tidak masuk kriteria penerimaan sekarang.
+
+## Sumber dan lisensi
+
+Corpus awal empat dokumen: UU 27/2022, Putusan MK 151/PUU-XXII/2024, 135/PUU-XXIII/2025 dan 133/PUU-XXIV/2026. Lihat [sumber dan tanggal verifikasi](docs/data_sources.md). Corpus tidak lengkap; perubahan setelah tanggal manifest mungkin belum tercakup. PDF tidak didistribusikan bersama repository.
+
+PyMuPDF menggunakan lisensi AGPL-3.0 atau lisensi komersial Artifex; tinjau kewajiban distribusi sebelum membagikan aplikasi. Lisensi Qwen dan komponen retrieval dicatat di docs/data_sources.md. Pin paket ada di pyproject.toml dan revision embedding/reranker di config. Ini alat bantu penelusuran, bukan penasihat hukum.
+
+Hasil kualitas pipeline terkini: [docs/quality_acceptance.md](docs/quality_acceptance.md). Permintaan nama pejabat dan pertanyaan tanpa penanda topik hukum/PDP ditolak secara konservatif; beberapa pertanyaan valid juga dapat abstain. Pertanyaan baru yang lebih luas perlu evaluasi tambahan.
+
+## Status laporan
+
+[Hasil kualitas aktif](docs/quality_acceptance.md) mencatat validasi development dan false abstention. Angka tersebut berasal dari run sebelumnya; pergantian konfigurasi eksekusi tidak berarti ada evaluasi GPU baru. [Review awal](docs/answer_review.md), laporan retrieval dan hardware adalah arsip; hasil historis tidak diubah menjadi hasil konfigurasi sekarang. Keterangan penggunaan GPU berasal dari klarifikasi pengguna, bukan pengukuran baru pada sesi dokumentasi ini.
+
+## Portfolio and LinkedIn demo
+
+[The English portfolio report](docs/portfolio/report.md) explains the problem, architecture, technical choices, evaluation, fixes, and limitations. The [2–3 minute demo guide](docs/portfolio/demo.md) includes three scenarios with actual screenshots. LinkedIn materials include an [eight-page English PDF carousel](docs/portfolio/regularag-linkedin.pdf), [editable PowerPoint](docs/portfolio/regularag-linkedin.pptx), and [caption](docs/portfolio/caption.md).
+
+AI review is reported separately from human validation, which is not yet available. Original Indonesian screenshots and legal excerpts remain unchanged evidence, with English explanations and clearly labeled translations. The recorded demo does not update development scores or legal verification dates. BPK was unavailable during that demo; source inspection used an official local PDF with a matching checksum. Recurring footers, page numbers, and display dates remain removed from the carousel.

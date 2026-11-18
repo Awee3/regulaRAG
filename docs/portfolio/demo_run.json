@@ -1,0 +1,122 @@
+{
+  "recorded_at_utc": "2026-11-17T11:17:04.346890+00:00",
+  "demo_date_local": "2026-11-17",
+  "timezone": "Asia/Jakarta",
+  "interface": "Streamlit UI at http://127.0.0.1:8501",
+  "observation_method": "Actual UI interactions and screenshots; no replay or mocked UI",
+  "config": {
+    "retrieval_mode": "bm25",
+    "top_k": 5,
+    "document_ids": null,
+    "model": "qwen3:1.7b-q4_K_M",
+    "num_ctx": 4096,
+    "num_gpu": null,
+    "llm_device_note": "GPU per user statement; Ollama automatic offloading, not measured in this demo"
+  },
+  "corpus": {
+    "active_documents": 4,
+    "chunks": 593,
+    "sha256": "b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5",
+    "latest_artifact_verification_utc": "2026-11-16T08:43:52Z",
+    "legal_status_reverified_in_this_session": false
+  },
+  "scenarios": [
+    {
+      "scenario": "answer",
+      "question": "Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?",
+      "observed": "Answer shown, citation Pasal 46, PDF page 19",
+      "chunk_id_matched_in_store": "UU_27_2022:article:46",
+      "screenshot": "assets/demo-answer.jpg"
+    },
+    {
+      "scenario": "citation",
+      "observed": "Citation expanded; official BPK destination opened and returned The service is unavailable",
+      "official_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+      "source_available_online": false,
+      "fallback": "Official local PDF with matching manifest SHA-256, page 19 rendered and inspected by AI",
+      "source_sha256": "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6",
+      "screenshot": "assets/demo-citation.jpg",
+      "pdf_page_image": "assets/source-pdf-page-19.png",
+      "unavailable_screenshot": "assets/source-unavailable.jpg",
+      "extraction_issue": "The rendered PDF includes menyampaikan; the extracted text shown by the UI omits it"
+    },
+    {
+      "scenario": "abstention",
+      "question": "Apa jadwal penerbangan Jakarta Tokyo besok?",
+      "observed": "Abstention shown; no citations",
+      "screenshot": "assets/demo-abstention.jpg"
+    }
+  ],
+  "historical_quality_review": {
+    "file": "evaluation/results/quality_final_review.jsonl",
+    "summary_file": "evaluation/results/quality_final_summary.json",
+    "review_status": "ai_reviewed",
+    "passed": 12,
+    "cases": 13,
+    "historical_runtime": "CPU",
+    "independent_test_set": false,
+    "human_validation": "not_available",
+    "N01_rerun_for_this_demo": false
+  },
+  "performance_benchmark_performed": false,
+  "deliverables": [
+    {
+      "file": "report.md",
+      "bytes": 7858,
+      "sha256": "656776de68aefa49c1a1bf61ad9fae8fffe74d13dc5e4bd3a68672078cdfff82"
+    },
+    {
+      "file": "demo.md",
+      "bytes": 7518,
+      "sha256": "2b50487e39238fd31099ee09a97bc32884e01d05fac699333ad1ca406ff7a850"
+    },
+    {
+      "file": "caption.md",
+      "bytes": 1248,
+      "sha256": "a06adebf0c2567f1030af513ba42b90948b611b9743d2484846904072ab7f055"
+    },
+    {
+      "file": "regularag-linkedin.pptx",
+      "bytes": 3059125,
+      "sha256": "092a3a0ce07b20ea8e5f3563ebf11f32578a9c4a2c624514e6b7a8e0734a8525"
+    },
+    {
+      "file": "regularag-linkedin.pdf",
+      "bytes": 3239140,
+      "sha256": "30521d3792f569df9a4a9b7126a76cc26104a1fea47690ca0a96852a1ebbc1dc"
+    }
+  ],
+  "artifact_checks": {
+    "slides_and_pdf_pages": 8,
+    "ratio": "4:5",
+    "native_editable_pptx_text": true,
+    "pptx_font": "Arial",
+    "pdf_searchable_text": true,
+    "pdf_source_and_repository_links": true,
+    "pdf_embedded_slide_pixels_match": true,
+    "poppler_render_mean_pixel_difference_per_page": [
+      4.032563,
+      1.537509,
+      2.362466,
+      3.86379,
+      3.49466,
+      1.85867,
+      2.304145,
+      1.848566
+    ],
+    "markdown_local_links": "passed",
+    "review_kind": "AI visual and automated checks, not human validation",
+    "powerpoint_desktop_opened": false,
+    "pdf_export_method": "Exact session slide renders with searchable native slide copy and URI annotations",
+    "recurring_footer_removed": true,
+    "authored_display_dates_removed": true
+  },
+  "presentation_language": "en",
+  "original_evidence_language": "id",
+  "translation_note": "All authored slide copy, notes, alt text, and portfolio documents are English. Original Indonesian prompts, screenshots, and legal evidence remain intact. English renderings are explanatory translations, not newly tested English queries.",
+  "cover_art": {
+    "asset": "assets/carousel-cover-art.png",
+    "generator": "Built-in ImageGen",
+    "role": "Conceptual illustration. The creation prompt is in the cover speaker notes."
+  }
+}

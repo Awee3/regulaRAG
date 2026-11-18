@@ -19,14 +19,10 @@ st.warning("Teks hasil ekstraksi PDF dapat kehilangan atau mengubah kata. Buka P
 
 with st.form("query"):
     question = st.text_area("Pertanyaan", placeholder="Contoh: Apa yang harus dilakukan setelah terjadi kegagalan pelindungan data?", max_chars=2000)
-    col_mode, col_count = st.columns(2)
-    with col_mode:
-        retrieval_mode = st.selectbox(
-            "Metode pencarian", ["bm25", "dense", "hybrid", "hybrid_rerank"], index=2,
-            format_func={"bm25": "BM25 — pencocokan kata", "dense": "Dense — kemiripan makna", "hybrid": "Hybrid — gabungan keduanya", "hybrid_rerank": "Hybrid + reranker CPU (opsional)"}.get,
-        )
-    with col_count:
-        top_k = st.slider("Jumlah sumber yang diminta", min_value=1, max_value=10, value=5)
+    retrieval_mode = st.selectbox(
+        "Metode pencarian", ["bm25", "dense", "hybrid", "hybrid_rerank"], index=0,
+        format_func={"bm25": "BM25 — pencocokan kata", "dense": "Dense — kemiripan makna", "hybrid": "Hybrid — gabungan keduanya", "hybrid_rerank": "Hybrid + reranker CPU (opsional)"}.get,
+    )
     selected_ids = st.multiselect(
         "Batasi dokumen (opsional)", [doc["document_id"] for doc in eligible_documents],
         format_func={doc["document_id"]: doc["title"] for doc in eligible_documents}.get,
@@ -34,13 +30,14 @@ with st.form("query"):
     submitted = st.form_submit_button("Cari dan jawab", type="primary")
 
 if submitted:
+    st.session_state.pop("result", None)
     if len(question.strip()) < 3:
         st.error("Masukkan pertanyaan minimal 3 karakter.")
     else:
         try:
             with st.spinner("Mencari bukti dan menyusun jawaban dari model lokal…"):
                 st.session_state["result"] = query(QueryRequest(
-                    question=question, retrieval_mode=retrieval_mode, top_k=top_k,
+                    question=question, retrieval_mode=retrieval_mode,
                     document_ids=selected_ids or None,
                 ))
         except HTTPException as exc:
@@ -49,6 +46,7 @@ if submitted:
 result = st.session_state.get("result")
 if result:
     st.subheader("Jawaban")
+    st.caption("Model memilih kutipan asli; periksa apakah sumber menjawab pertanyaan Anda.")
     if result["abstained"]:
         st.warning("Sistem abstain: bukti belum cukup untuk menjawab dengan yakin.")
     else:

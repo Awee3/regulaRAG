@@ -11,25 +11,43 @@ PARAGRAPH = re.compile(r"(?m)^\s*\(([0-9]+)\)")
 
 def parse_pages(document_id: str, pages: list[str], source_url: str,
                 source_kind: str = "regulation_full_text", effective_from: str | None = None,
-                status: str = "verified") -> list[dict]:
+                status: str = "verified", document_title: str | None = None) -> list[dict]:
     """Keep article chunks separate and retain actual 1-based PDF page spans."""
     if source_kind != "regulation_full_text":
-        return [{
-            "document_id": document_id,
-            "chunk_id": f"{document_id}:page:{page_number}",
-            "page_start": page_number,
-            "page_end": page_number,
-            "bab": None,
-            "article": None,
-            "paragraph": None,
-            "letter": None,
-            "heading": f"Halaman PDF {page_number}",
-            "text": page.strip(),
-            "source_url": source_url,
-            "status": status,
-            "effective_from": effective_from,
-            "source_kind": source_kind,
-        } for page_number, page in enumerate(pages, start=1) if page.strip()]
+        chunks = []
+        for page_number, page in enumerate(pages, start=1):
+            if not page.strip():
+                continue
+            text_upper = page.upper()
+            section_type = "duduk_perkara"
+            if re.search(r"(?m)^\s*(?:[45]\.\s*)?(?:AMAR PUTUSAN|MENGADILI)\s*:?\s*$", text_upper):
+                section_type = "amar_putusan"
+            elif "[3." in page or "PERTIMBANGAN HUKUM" in text_upper or "PERTIMBANGAN MAHKAMAH" in text_upper:
+                section_type = "pertimbangan_hukum"
+
+            sec_name = ("Amar Putusan" if section_type == "amar_putusan"
+                        else ("Pertimbangan Hukum" if section_type == "pertimbangan_hukum"
+                              else "Duduk Perkara"))
+            heading = f"{sec_name} (Halaman {page_number})"
+
+            chunks.append({
+                "document_id": document_id,
+                "chunk_id": f"{document_id}:page:{page_number}",
+                "page_start": page_number,
+                "page_end": page_number,
+                "bab": None,
+                "article": None,
+                "paragraph": None,
+                "letter": None,
+                "heading": heading,
+                "text": page.strip(),
+                "source_url": source_url,
+                "status": status,
+                "effective_from": effective_from,
+                "source_kind": source_kind,
+                "section_type": section_type,
+            })
+        return chunks
 
     chunks: list[dict] = []
     current_bab = None
@@ -46,7 +64,7 @@ def parse_pages(document_id: str, pages: list[str], source_url: str,
                 "page_end": current["page_end"],
                 "bab": current["bab"],
                 "article": f"Pasal {current['article']}",
-                "paragraph": (f"ayat ({p.group(1)})" if (p := PARAGRAPH.search(current["text"])) else None),
+                "paragraph": (f"ayat ({next(iter(numbers))})" if len(numbers := set(PARAGRAPH.findall(current["text"]))) == 1 else None),
                 "letter": None,
                 "heading": None,
                 "text": current["text"].strip(),
@@ -60,10 +78,18 @@ def parse_pages(document_id: str, pages: list[str], source_url: str,
     for page_number, page in enumerate(pages, start=1):
         for line in page.splitlines():
             if line.strip().upper() in {"PENJELASAN", "PENJEI,ASAN"}:
+                flush()
+                current = None
+                current_bab = None
                 section_type = "penjelasan"
+                continue
             bab = BAB.match(line)
-            if bab:
-                current_bab = bab.group(1).upper()
+            if bab or re.match(r"^\s*Bagian\s+\w+\s*$", line):
+                flush()
+                current = None
+                if bab:
+                    current_bab = bab.group(1).upper()
+                continue
             article = ARTICLE.match(line)
             if article:
                 flush()

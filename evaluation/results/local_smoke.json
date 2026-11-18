@@ -1,0 +1,27 @@
+{
+  "result": {
+    "answer": "Pasal 46 mengatur bahwa dalam hal terjadi kegagalan pelindungan data pribadi, Pengendali Data Pribadi wajib memberikan pemberitahuan secara tertulis paling lambat 3 x 24 jam kepada Subjek Data Pribadi dan lembaga. Pemberitahuan tersebut minimal memuat data pribadi yang terungkap, kapan dan bagaimana data tersebut terungkap, serta upaya penanganan dan pemulihan yang dilakukan oleh Pengendali Data Pribadi. Dalam hal tertentu, Pengendali Data Pribadi juga wajib memberitahukan kepada masyarakat tentang kegagalan pelindungan data pribadi.",
+    "abstained": false,
+    "reason": null,
+    "retrieval_mode": "bm25",
+    "citations": [
+      {
+        "chunk_id": "UU_27_2022:article:46",
+        "document_id": "UU_27_2022",
+        "article": "Pasal 46",
+        "paragraph": null,
+        "page_start": 19,
+        "page_end": 19,
+        "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+        "status": "verified",
+        "effective_from": "2022-10-17",
+        "document_title": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+        "quote": "Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\nPengendali Data Pribadi wajib\npemberitahuan secara tertulis paling lambat 3 x 24\n(tiga kali dua puluh empat) jam kepada:\na. Subjek Data Pribadi; dan\nb. lembaga.\n(2) Pemberitahuan tertulis sebagaimana dimaksud pada\nayat (1) minimal memuat:\nData Pribadi yang terungkap;\nkapan dan bagaimana Data Pribadi terungkap; dan\nupaya penanganan dan pemulihan atas\nterungkapnya Data Pribadi oleh Pengendali Data\nPribadi.\n(3) Dalam hal tertentu, Pengendali Data Pribadi wajib\nmemberitahukan kepada masyarakat mengenai\nkegagalan Pelindungan Data Pribadi."
+      }
+    ],
+    "disclaimer": "Informasi ini merupakan alat bantu penelusuran dokumen, bukan nasihat hukum."
+  },
+  "latency_seconds": 107.66176919999998,
+  "device_request": "cpu",
+  "review_status": "pending_human_review"
+}

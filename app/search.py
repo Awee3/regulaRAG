@@ -10,10 +10,13 @@ import threading
 from collections import Counter
 from pathlib import Path
 
+from app.config import CONFIG
+
 TOKEN = re.compile(r"[\w/.-]+", re.UNICODE)
-RRF_K = 10
-DENSE_RRF_WEIGHT = 2.0
-EMBEDDING_MODEL = os.getenv("REGULARAG_EMBEDDING_MODEL", "intfloat/multilingual-e5-base")
+RRF_K = CONFIG["retrieval"]["rrf_k"]
+DENSE_RRF_WEIGHT = CONFIG["retrieval"]["dense_rrf_weight"]
+EMBEDDING_MODEL = os.getenv("REGULARAG_EMBEDDING_MODEL", CONFIG["embedding"]["model"])
+EMBEDDING_REVISION = os.getenv("REGULARAG_EMBEDDING_REVISION", CONFIG["embedding"].get("revisions", {}).get(EMBEDDING_MODEL))
 _encoder = None
 _embedding_cache: tuple[tuple[str, int, int, str], list[dict], list[list[float]]] | None = None
 _dense_lock = threading.Lock()
@@ -33,7 +36,7 @@ def _load_encoder():
                 'Dense search needs the optional dependencies. Install with: python -m pip install -e ".[dense]"'
             ) from exc
         try:
-            _encoder = SentenceTransformer(EMBEDDING_MODEL, device="cpu")
+            _encoder = SentenceTransformer(EMBEDDING_MODEL, revision=EMBEDDING_REVISION, device=CONFIG["embedding"]["device"])
         except Exception as exc:
             raise DenseSearchUnavailable(
                 f"Model embedding {EMBEDDING_MODEL} tidak dapat dimuat. Periksa koneksi unduhan atau cache model lokal."
@@ -45,8 +48,17 @@ def _documents(chunks_path: Path) -> list[dict]:
     return [json.loads(line) for line in chunks_path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+def _normalize_query(question: str) -> str:
+    # Expand universal legal acronyms (e.g. DPO <-> PPDP / pejabat/petugas pelindungan data pribadi)
+    normalized = re.sub(r"\bdpo\b", "dpo pejabat petugas pelindungan data pribadi ppdp", question, flags=re.IGNORECASE)
+    for term, expansion in {"membocorkan": "mengungkapkan", "kebocoran": "kegagalan pelindungan", "dikirim": "transfer", "petugas": "pejabat"}.items():
+        normalized = re.sub(rf"\b{term}\b", f"{term} {expansion}", normalized, flags=re.IGNORECASE)
+    return normalized
+
+
 def _bm25(question: str, docs: list[dict], top_k: int) -> list[dict]:
-    query = Counter(TOKEN.findall(question.casefold()))
+    q_norm = _normalize_query(question)
+    query = Counter(TOKEN.findall(q_norm.casefold()))
     if not docs or not query:
         return []
     terms = [Counter(TOKEN.findall(d["text"].casefold())) for d in docs]
@@ -57,15 +69,33 @@ def _bm25(question: str, docs: list[dict], top_k: int) -> list[dict]:
            for term, frequency in document_frequency.items()}
     article_match = re.search(r"\bpasal\s+([0-9]+[a-z]?)\b", question, re.IGNORECASE)
     exact_article = f"Pasal {article_match.group(1)}".casefold() if article_match else None
+
+    putusan_match = re.search(r"\b(?:putusan|perkara|nomor|no\.?)\s*(?:mk\s*)?([0-9]{2,3})\b", question, re.IGNORECASE)
+    putusan_num = putusan_match.group(1) if putusan_match else None
+    is_asking_amar = bool(re.search(r"\b(?:amar|status|membatalkan|mengabulkan|menolak|mengubah|putusan)\b", question, re.IGNORECASE))
+
     ranked = []
     for doc, words, length in zip(docs, terms, lengths):
         score = sum(query[term] * idf[term] * (words[term] * 2.5) /
                     (words[term] + 1.5 * (1 - 0.75 + 0.75 * length / average_length))
                     for term in query if words[term])
         if score:
-            exact = ((doc.get("article") or "").casefold() == exact_article
-                     and doc.get("section_type") == "batang_tubuh") if exact_article else False
+            exact = False
+            if exact_article and not putusan_num:
+                exact = ((doc.get("article") or "").casefold() == exact_article
+                         and doc.get("section_type") == "batang_tubuh")
+            elif putusan_num and doc.get("document_id", "").startswith("MK_"):
+                doc_id = doc.get("document_id", "")
+                if putusan_num in doc_id:
+                    if is_asking_amar and doc.get("section_type") == "amar_putusan":
+                        score *= 2.5
+                    elif doc.get("section_type") in ("amar_putusan", "pertimbangan_hukum"):
+                        score *= 1.4
             ranked.append((exact, score, doc))
+    definition = re.search(r"(?:dimaksud (?:dengan )?|definisi )(.*?)[?.]?$", question, re.IGNORECASE)
+    if definition:
+        term = definition.group(1).strip().casefold()
+        ranked = [(exact or f"{term} adalah" in " ".join(doc["text"].casefold().split()), score, doc) for exact, score, doc in ranked]
     ranked.sort(key=lambda item: (-item[0], -item[1], item[2]["chunk_id"]))
     return [dict(doc, score=score) for _, score, doc in ranked[:top_k]]
 
@@ -82,7 +112,7 @@ def _dense(question: str, chunks_path: Path, docs: list[dict], top_k: int) -> li
                                      normalize_embeddings=True, show_progress_bar=False)
             _embedding_cache = (key, all_docs, [list(map(float, vector)) for vector in vectors])
         encoder = _load_encoder()
-        query_vector = list(map(float, encoder.encode([f"query: {question}"],
+        query_vector = list(map(float, encoder.encode([f"query: {_normalize_query(question)}"],
                                                       normalize_embeddings=True, show_progress_bar=False)[0]))
         allowed = {doc["chunk_id"] for doc in docs}
         ranked = [(sum(a * b for a, b in zip(query_vector, vector)), doc)
@@ -105,18 +135,21 @@ def _rrf(rankings: list[list[dict]], top_k: int, k: int = RRF_K,
 
 
 def search(question: str, chunks_path: Path, top_k: int = 5,
-           document_ids: set[str] | None = None, retrieval_mode: str = "bm25") -> list[dict]:
+           document_ids: set[str] | None = None, retrieval_mode: str = "bm25",
+           normative_only: bool = False) -> list[dict]:
     if not question.strip() or not 1 <= top_k <= 20:
-        raise ValueError("Pertanyaan wajib diisi dan top_k harus 1–20.")
+        raise ValueError("Pertanyaan wajib diisi dan top_k harus 1-20.")
     if retrieval_mode not in {"bm25", "dense", "hybrid"}:
         raise ValueError("retrieval_mode harus bm25, dense, atau hybrid.")
     docs = _documents(chunks_path)
+    if normative_only:
+        docs = [doc for doc in docs if doc.get("source_kind") != "judgment_full_text" or doc.get("section_type") == "amar_putusan"]
     if document_ids is not None:
         docs = [doc for doc in docs if doc["document_id"] in document_ids]
     if retrieval_mode == "bm25":
         return _bm25(question, docs, top_k)
     # Retrieve a shared candidate pool before returning top_k; this leaves BM25's baseline unchanged.
-    candidate_k = min(len(docs), max(top_k, 20))
+    candidate_k = min(len(docs), max(top_k, CONFIG["retrieval"]["candidate_k"]))
     dense = _dense(question, chunks_path, docs, candidate_k)
     if retrieval_mode == "dense":
         return dense[:top_k]
@@ -136,3 +169,10 @@ if __name__ == "__main__":
     args = cli.parse_args()
     hits = search(args.question, args.chunks, retrieval_mode=args.mode)
     print(json.dumps(hits, ensure_ascii=False, indent=2) if hits else "Tidak ada evidence; abstain.")
+
+
+def release_encoder():
+    """Release model weights while retaining cached passage vectors."""
+    global _encoder
+    with _dense_lock:
+        _encoder = None

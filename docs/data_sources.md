@@ -1,3 +1,5 @@
+> **Scope model aktif:** satu LLM Qwen3 1.7B Q4_K_M, menggunakan GPU menurut klarifikasi pengguna. Embedding/reranker tetap dapat memakai CPU. Perbandingan 4B dan pengukuran resource di bagian riwayat bukan konfigurasi aktif atau kewajiban penerimaan. Metadata hukum di bawah tidak diperbarui oleh perubahan scope ini.
+
 # Sumber data hukum
 
 Metadata UU PDP diperiksa kembali pada **2026-11-02** terhadap halaman BPK. PDF UU 27/2022 dan Putusan MK 151/PUU-XXII/2024 diunduh dari tautan resmi BPK pada **2026-10-29**; salinan putusan resmi MK 135/PUU-XXIII/2025 (JDIH Komdigi) dan MK 133/PUU-XXIV/2026 (server Mahkamah Konstitusi) diunduh pada **2026-11-16**. Seluruh checksum cocok dengan manifest dan dokumen tersebut aktif untuk ingestion. Metadata putusan kandidat lainnya terakhir diperiksa pada **2026-10-26** dan **2026-11-16**. Ini bukan monitor perubahan otomatis; periksa ulang sumber sebelum memakai corpus untuk keputusan hukum. `data/manifest.jsonl` adalah daftar sumber dan statusnya.
@@ -21,8 +23,15 @@ Metadata UU PDP diperiksa kembali pada **2026-11-02** terhadap halaman BPK. PDF 
 
 Checksum, waktu verifikasi UTC per item, serta catatan status artefak dicatat terpisah dalam manifest. Nilai checksum `null` berarti naskah lokal belum tersedia; metadata terverifikasi tidak menjadikan dokumen tersebut aktif dalam corpus. Berita dan ringkasan tidak boleh diperlakukan sebagai bunyi peraturan atau pengganti putusan lengkap.
 
-## Pemeriksaan model dan perangkat
+## Riwayat pemeriksaan model dan perangkat (arsip)
 
 Pada **2026-10-31**, halaman resmi Ollama menampilkan tag `qwen3:4b-instruct-2507-q4_K_M` (Q4_K_M, sekitar 2.5 GB, Apache-2.0) dan `qwen3:1.7b-q4_K_M` (Q4_K_M, sekitar 1.4 GB, Apache-2.0): [utama](https://ollama.com/library/qwen3%3A4b-instruct-2507-q4_K_M), [fallback](https://ollama.com/library/qwen3%3A1.7b-q4_K_M). Ollama 0.40.13 dan model utama tersedia pada mesin pengembangan ini; satu query lokal hybrid+reranker berhasil menghasilkan jawaban dengan citation yang valid. GPU offloading, RAM/VRAM, dan latency generation pada laptop ASUS TUF Gaming FX505GT belum diukur. Ukuran artefak bukan kebutuhan total inference. `intfloat/multilingual-e5-base` sudah dipakai untuk retrieval CPU; `intfloat/multilingual-e5-small` belum dibandingkan. Reranker `Horizon-Labs/multilingual-reranker-small` memakai revision `d35a2781eeb3de1d971ad328165277bdf5712e35`, lisensi Apache-2.0, dan ONNX INT8 CPU; ONNX Runtime 1.31.1 berhasil memuat model dengan `CPUExecutionProvider`. Evaluasi 20 pertanyaan mencatat sekitar 7 detik per query untuk reranking; hasil dev membaik, tetapi MRR holdout turun dibanding hybrid. Sumber model: [E5 base](https://huggingface.co/intfloat/multilingual-e5-base), [E5 small](https://huggingface.co/intfloat/multilingual-e5-small), [reranker](https://huggingface.co/Horizon-Labs/multilingual-reranker-small), [ONNX Runtime](https://onnxruntime.ai/docs/install/).
 
 Pemeriksaan visual halaman 7 UU menemukan bahwa text layer PDF BPK/JDIH (kedua unduhan memiliki SHA-256 identik) menghilangkan beberapa kata pada hasil ekstraksi meskipun kata terlihat pada halaman. Karena itu, parser menyimpan teks apa adanya dan belum memakai OCR; kutipan yang memerlukan bunyi persis harus dicek pada PDF resmi sampai ada tahap OCR/validasi ekstraksi.
+
+
+## Riwayat pengujian lokal 2026-11-17 (arsip)
+
+Checksum empat PDF aktif cocok dengan manifest; corpus dibangun ulang setelah perbaikan batas Penjelasan dan label ayat. Status hukum pada portal tidak diverifikasi ulang pada sesi ini; tanggal verifikasi lama tetap berlaku. Kedua varian Qwen menghasilkan jawaban Pasal 46 lewat CPU. GPU auto gagal inisialisasi CUDA; default proyek diubah ke CPU berdasarkan hasil nyata. Lihat `docs/hardware_report.md`. Model E5 small berhasil dimuat di CPU; revision E5 base/small dikunci sesuai snapshot yang diperiksa dalam cache. Kartu resmi [E5 small](https://huggingface.co/intfloat/multilingual-e5-small) dan [registry fallback Ollama](https://ollama.com/library/qwen3:1.7b-q4_K_M) diperiksa ulang.
+
+Generation memakai structured JSON schema dan `think=false` sesuai [dokumentasi Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs) dan [thinking](https://docs.ollama.com/capabilities/thinking). Respons tetap divalidasi backend; format benar bukan jaminan jawaban benar.

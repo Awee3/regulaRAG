@@ -2,6 +2,20 @@
 
 > **Peran file ini:** instruksi kerja untuk Codex saat membangun proyek ini. Baca seluruh file sebelum mengubah kode. Jika repository yang ada sudah memiliki arsitektur atau keputusan teknis yang masuk akal, periksa dulu dan hindari menimpa pekerjaan yang sudah berfungsi. 
 
+## Scope aktif — keputusan pengguna 2026-11-17
+
+Bagian ini berlaku jika berbeda dengan rancangan awal di bawah. Rincian hukum, keamanan, privasi, sumber primer, citation dan larangan mengarang tetap wajib.
+
+- Satu LLM: Qwen3 1.7B Q4_K_M (`qwen3:1.7b-q4_K_M`). Tidak ada model utama 4B, fallback LLM, atau kewajiban perbandingan LLM.
+- Pengguna menyatakan LLM dijalankan menggunakan GPU. Ollama mengatur offloading otomatis; jangan menyimpulkan full GPU atau jumlah layer tanpa bukti. CPU tetap jalur alternatif. Embedding/reranker CPU tidak berarti LLM juga CPU.
+- Tidak mengerjakan perbaikan kompatibilitas GPU, driver, atau benchmark RAM/VRAM, latency, throughput dan performa lainnya. Angka historis disimpan sebagai arsip, bukan syarat penerimaan.
+- Fokus penerimaan: jawaban akurat dan didukung sumber, citation, abstention, tes fungsional dan README yang dapat diikuti. Perbandingan mode retrieval tetap dapat dilakukan; tidak wajib menjalankan ulang eksperimen resource.
+- Implementasi jawaban saat ini bersifat ekstraktif: model memilih ID cuplikan, backend mengembalikan teks asli dan memvalidasi citation. Jangan menggambarkannya sebagai ringkasan bebas oleh model.
+- Review AI diberi label terpisah dari validasi manusia; hasil development bukan estimasi akurasi umum atau jaminan kebenaran hukum.
+- Laporan aktif: `docs/quality_acceptance.md`, `docs/acceptance.md`, dan README. Laporan eksperimen sebelum revisi diberi penanda arsip.
+
+Bagian selanjutnya merupakan rancangan awal. Ketentuan model 4B, perbandingan model, pengukuran resource dan pekerjaan GPU di sana telah digantikan oleh scope aktif ini. Jangan mengaktifkannya kembali tanpa permintaan pengguna.
+
 ## 1. Ringkasan proyek
 
 **Nama:** RegulaRAG Indonesia  

@@ -1,0 +1,48 @@
+{
+  "generated_at_utc": "2026-11-17T05:44:37.471280+00:00",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "ollama": {
+    "version": "0.40.13"
+  },
+  "model": "qwen3:4b-instruct-2507-q4_K_M",
+  "embedding_model": "intfloat/multilingual-e5-base",
+  "num_ctx": 4096,
+  "retrieval_mode": "bm25",
+  "end_to_end_seconds": 112.46782739998889,
+  "peak_sampled_total_gpu_memory_mib": 623,
+  "python_peak_ram_bytes": 53313536,
+  "ram_note": "Python process peak only, excludes Ollama; GPU sample includes other processes; keep_alive=0 unloads model after query.",
+  "result": {
+    "answer": "Pasal 46 mengatur bahwa dalam hal terjadi kegagalan pelindungan data pribadi, Pengendali Data Pribadi wajib memberikan pemberitahuan secara tertulis paling lambat 3 x 24 jam kepada Subjek Data Pribadi dan lembaga. Pemberitahuan tersebut minimal memuat data pribadi yang terungkap, kapan dan bagaimana data tersebut terungkap, serta upaya penanganan dan pemulihan yang dilakukan oleh Pengendali Data Pribadi. Dalam hal tertentu, Pengendali Data Pribadi juga wajib memberitahukan kepada masyarakat tentang kegagalan pelindungan data pribadi.",
+    "abstained": false,
+    "reason": null,
+    "retrieval_mode": "bm25",
+    "citations": [
+      {
+        "chunk_id": "UU_27_2022:article:46",
+        "document_id": "UU_27_2022",
+        "article": "Pasal 46",
+        "paragraph": null,
+        "page_start": 19,
+        "page_end": 19,
+        "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+        "status": "verified",
+        "effective_from": "2022-10-17",
+        "source_kind": "regulation_full_text",
+        "section_type": "batang_tubuh",
+        "document_title": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+        "quote": "Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\nPengendali Data Pribadi wajib\npemberitahuan secara tertulis paling lambat 3 x 24\n(tiga kali dua puluh empat) jam kepada:\na. Subjek Data Pribadi; dan\nb. lembaga.\n(2) Pemberitahuan tertulis sebagaimana dimaksud pada\nayat (1) minimal memuat:\nData Pribadi yang terungkap;\nkapan dan bagaimana Data Pribadi terungkap; dan\nupaya penanganan dan pemulihan atas\nterungkapnya Data Pribadi oleh Pengendali Data\nPribadi.\n(3) Dalam hal tertentu, Pengendali Data Pribadi wajib\nmemberitahukan kepada masyarakat mengenai\nkegagalan Pelindungan Data Pribadi."
+      }
+    ],
+    "runtime_metrics": {
+      "total_duration": 112218289700,
+      "load_duration": 14052294700,
+      "prompt_eval_count": 594,
+      "prompt_eval_duration": 24679174000,
+      "eval_count": 187,
+      "eval_duration": 73378367000
+    },
+    "disclaimer": "Informasi ini merupakan alat bantu penelusuran dokumen, bukan nasihat hukum."
+  },
+  "tokens_per_second": 2.5484350176394632
+}

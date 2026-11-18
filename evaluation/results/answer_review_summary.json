@@ -1,0 +1,14 @@
+{
+  "count": 5,
+  "runtime_failures": 0,
+  "reviewed": 0,
+  "pending": 5,
+  "abstention": {
+    "accuracy": 0.6,
+    "precision": 0.5,
+    "recall": 1.0
+  },
+  "answer_correctness": null,
+  "groundedness": null,
+  "manual_citation_support": null
+}

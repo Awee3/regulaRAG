@@ -1,5 +1,5 @@
-import json
 import io
+import json
 import tempfile
 import threading
 import time
@@ -7,10 +7,23 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from app.search import search
-from app.generation import OLLAMA_MODEL, OLLAMA_NUM_CTX, GeneratorUnavailable, InvalidModelResponse, generate
+from app.generation import (
+    OLLAMA_MODEL,
+    OLLAMA_NUM_CTX,
+    GeneratorUnavailable,
+    InvalidModelResponse,
+    generate,
+)
 from app.main import QueryRequest, query
 from app.reranking import rerank
+from app.search import search
+from evaluation.metrics import (
+    abstention_metrics,
+    answer_correctness_score,
+    citation_accuracy,
+    groundedness_score,
+    timed_call,
+)
 from evaluation.run_retrieval import _metrics, recall_at_k, reciprocal_rank_at_k
 from ingestion.build_corpus import build
 from ingestion.legal_text import article_metadata, parse_pages
@@ -47,6 +60,26 @@ class LegalTextTests(unittest.TestCase):
 
 
 class SearchTests(unittest.TestCase):
+    def test_answer_evaluation_metrics(self):
+        self.assertEqual(
+            citation_accuracy(["c1", "c3"], ["c1", "c2"], {"c1", "c4"}),
+            0.5,
+        )
+        self.assertEqual(groundedness_score([True, True, False]), 2 / 3)
+        self.assertEqual(answer_correctness_score([True, False, True]), 2 / 3)
+        metrics = abstention_metrics([False, True, True], [False, True, False])
+        self.assertAlmostEqual(metrics.accuracy, 2 / 3)
+        self.assertAlmostEqual(metrics.precision, 1.0)
+        self.assertAlmostEqual(metrics.recall, 0.5)
+
+    def test_answer_evaluation_rejects_mismatched_abstention_labels(self):
+        with self.assertRaises(ValueError):
+            abstention_metrics([True], [])
+
+    def test_timed_call_returns_result_and_elapsed_seconds(self):
+        result, elapsed = timed_call(lambda: "ok")
+        self.assertEqual(result, "ok")
+        self.assertGreaterEqual(elapsed, 0.0)
     def test_retrieval_metrics_measure_labeled_hits_and_first_relevant_rank(self):
         relevant = {"c2", "c4"}
         ranked = ["c1", "c2", "c3", "c4"]
@@ -80,6 +113,7 @@ class SearchTests(unittest.TestCase):
 
     def test_reranker_sorts_candidates_by_model_score_and_limits_output(self):
         import numpy as np
+
         import app.reranking as reranking_module
 
         class FakeTokenizer:
@@ -165,8 +199,17 @@ class SearchTests(unittest.TestCase):
 
 
 class GenerationTests(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        chunks = Path(directory.name) / "chunks.jsonl"
+        chunks.write_text(json.dumps({"chunk_id": "UU_27_2022:article:2", "document_id": "UU_27_2022", "text": "Pasal 2\\nTeks fixture untuk uji pipeline."}) + "\n", encoding="utf-8")
+        patcher = patch("app.main.CHUNKS", chunks)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_generator_accepts_only_retrieved_citations(self):
-        answer = json.dumps({"answer":"Berdasarkan sumber.","citation_ids":["E1"],"abstained":False})
+        answer = json.dumps({"answer":"evidence","citation_ids":["E1"],"abstained":False})
         response = io.BytesIO(json.dumps({"message":{"content":answer}}).encode())
         with patch("app.generation.urlopen", return_value=response) as opener:
             self.assertEqual(generate("apa?", [{"text":"evidence"}])["citation_ids"], ["E1"])
@@ -174,7 +217,7 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(payload["model"], OLLAMA_MODEL)
         self.assertEqual(payload["options"]["num_ctx"], OLLAMA_NUM_CTX)
 
-        invalid = json.dumps({"answer":"Berdasarkan sumber.","citation_ids":["E2"],"abstained":False})
+        invalid = json.dumps({"answer":"evidence","citation_ids":["E2"],"abstained":False})
         response = io.BytesIO(json.dumps({"message":{"content":invalid}}).encode())
         with patch("app.generation.urlopen", return_value=response), self.assertRaises(InvalidModelResponse):
             generate("apa?", [{"text":"evidence"}])
@@ -183,7 +226,7 @@ class GenerationTests(unittest.TestCase):
         active = 0
         max_active = 0
         guard = threading.Lock()
-        answer = json.dumps({"answer":"Berdasarkan sumber.","citation_ids":["E1"],"abstained":False})
+        answer = json.dumps({"answer":"evidence","citation_ids":["E1"],"abstained":False})
 
         def fake_urlopen(*_args, **_kwargs):
             nonlocal active, max_active

@@ -1,0 +1,46 @@
+{
+  "question_id": "Q03",
+  "split": "dev",
+  "question": "Apa kewajiban pengendali untuk menjaga keamanan informasi pribadi yang sedang diproses?",
+  "relevant_chunk_ids": [
+    "UU_27_2022:article:35"
+  ],
+  "reviewer_notes": "Pasal 35 mengatur perlindungan dan keamanan serta langkah teknis-operasional. Cocokkan dengan UU PDP, Pasal 35, halaman PDF 15–16.",
+  "is_answerable": true,
+  "question_type": "lookup",
+  "result": {
+    "answer": "Pasal 35\nPengendali Data Pribadi wajib melindungi dan memastikan\nkeamanan Data Pribadi yang diprosesnya, dengan\nmelakukan:\na. pen]rusunan . . .\nSK No 155216A\nPRESIDEN\nREPUBLIK INDONESIA\n-16-\na. penyusunan dan penerapan langkah teknis\n' operasional untuk melindungi Data Pribadi dari\ngangguan pemrosesan Data Pribadi yang bertentangan\ndengan ketentuan peraturan perundang-undangan;\ndan\nb. penentuan tingkat keamanan Data Pribadi dengan\nmemperhatikan sifat dan risiko dari Data Pribadi yang\nharus dilindungi dalam pemrosesan Data Pribadi.",
+    "abstained": false,
+    "reason": null,
+    "retrieval_mode": "bm25",
+    "citations": [
+      {
+        "chunk_id": "UU_27_2022:article:35",
+        "document_id": "UU_27_2022",
+        "article": "Pasal 35",
+        "paragraph": null,
+        "page_start": 15,
+        "page_end": 16,
+        "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+        "status": "verified",
+        "effective_from": "2022-10-17",
+        "source_kind": "regulation_full_text",
+        "section_type": "batang_tubuh",
+        "document_title": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+        "quote": "Pasal 35\nPengendali Data Pribadi wajib melindungi dan memastikan\nkeamanan Data Pribadi yang diprosesnya, dengan\nmelakukan:\na. pen]rusunan . . .\nSK No 155216A\nPRESIDEN\nREPUBLIK INDONESIA\n-16-\na. penyusunan dan penerapan langkah teknis\n' operasional untuk melindungi Data Pribadi dari\ngangguan pemrosesan Data Pribadi yang bertentangan\ndengan ketentuan peraturan perundang-undangan;\ndan\nb. penentuan tingkat keamanan Data Pribadi dengan\nmemperhatikan sifat dan risiko dari Data Pribadi yang\nharus dilindungi dalam pemrosesan Data Pribadi."
+      }
+    ],
+    "runtime_metrics": {
+      "total_duration": 11285514200,
+      "load_duration": 2904167300,
+      "prompt_eval_count": 457,
+      "prompt_eval_duration": 6451009000,
+      "eval_count": 23,
+      "eval_duration": 1920797000
+    },
+    "disclaimer": "Informasi ini merupakan alat bantu penelusuran dokumen, bukan nasihat hukum."
+  },
+  "model": "qwen3:1.7b-q4_K_M",
+  "corpus_sha256": "b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5",
+  "review_status": "pending_human_review"
+}

@@ -1,0 +1,46 @@
+{
+  "question_id": "Q07",
+  "split": "dev",
+  "question": "Apa dasar yang harus dimiliki sebelum pengendali mulai memproses data pribadi?",
+  "relevant_chunk_ids": [
+    "UU_27_2022:article:20"
+  ],
+  "reviewer_notes": "Pasal 20 ayat (1) menyatakan kewajiban memiliki dasar pemrosesan dan ayat (2) merinci dasar tersebut. Cocokkan dengan UU PDP, Pasal 20, halaman PDF 10–11.",
+  "is_answerable": true,
+  "question_type": "lookup",
+  "result": {
+    "answer": "Pasal 20\n(1) Pengendali Data Pribadi wajib memiliki dasar\npemrosesan Data Pribadi.\n(2) Dasar...\nSK No l552ll A\nPRESIDEN\nREPUBLIK INDONESIA\n- 11-\n(2) Dasar pernmsesan Data Pribadi sebagaimana dimaksud\npada ayat (1) meliputi:\na. persetujuan yang sah secara eksplisit dari Subjek\nData Pribadi untuk 1 (sahr) atau beberapa tujuan\ntertentu yang telah disampait<an oleh Pengendali\nData Pribadi kepada Subjek Data Pribadi;\nb. pemenuhan kewajiban perjanjian dalam hal Subjek\nData Pribadi merupakan salah satu pihak atau\nuntuk memenuhi permintaan Subjek Data Pribadi\npada saat akan melalrukan pedanjian;\nc. pemenuhan kewajiban hukum dari Pengendali Data\nPribadi sesuai dengan ketentuan peraturan\nperundang-undangan;\nd. pemenuhan pelindungan kepentingan vital Subjek\nData Pribadi;\ne. pelaksanaan tugas dalam rangka kepentJngan\numum, pelayanan publik, atau pelaksanaan\n.\nkewenangan Pengendali Data Pribadi berdasarkan\nperaturan perundang-undangan; dan/atau\nf. pemenuhan kepentingan yang sah lainnya dengan\nmemperhatikan tujuan, kebututran, dan\nkeseimbangan kepentingan Pengendali Data Pribadi\ndan hak Subjek Data Pribadi.",
+    "abstained": false,
+    "reason": null,
+    "retrieval_mode": "bm25",
+    "citations": [
+      {
+        "chunk_id": "UU_27_2022:article:20",
+        "document_id": "UU_27_2022",
+        "article": "Pasal 20",
+        "paragraph": null,
+        "page_start": 10,
+        "page_end": 11,
+        "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+        "status": "verified",
+        "effective_from": "2022-10-17",
+        "source_kind": "regulation_full_text",
+        "section_type": "batang_tubuh",
+        "document_title": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+        "quote": "Pasal 20\n(1) Pengendali Data Pribadi wajib memiliki dasar\npemrosesan Data Pribadi.\n(2) Dasar...\nSK No l552ll A\nPRESIDEN\nREPUBLIK INDONESIA\n- 11-\n(2) Dasar pernmsesan Data Pribadi sebagaimana dimaksud\npada ayat (1) meliputi:\na. persetujuan yang sah secara eksplisit dari Subjek\nData Pribadi untuk 1 (sahr) atau beberapa tujuan\ntertentu yang telah disampait<an oleh Pengendali\nData Pribadi kepada Subjek Data Pribadi;\nb. pemenuhan kewajiban perjanjian dalam hal Subjek\nData Pribadi merupakan salah satu pihak atau\nuntuk memenuhi permintaan Subjek Data Pribadi\npada saat akan melalrukan pedanjian;\nc. pemenuhan kewajiban hukum dari Pengendali Data\nPribadi sesuai dengan ketentuan peraturan\nperundang-undangan;\nd. pemenuhan pelindungan kepentingan vital Subjek\nData Pribadi;\ne. pelaksanaan tugas dalam rangka kepentJngan\numum, pelayanan publik, atau pelaksanaan\n.\nkewenangan Pengendali Data Pribadi berdasarkan\nperaturan perundang-undangan; dan/atau\nf. pemenuhan kepentingan yang sah lainnya dengan\nmemperhatikan tujuan, kebututran, dan\nkeseimbangan kepentingan Pengendali Data Pribadi\ndan hak Subjek Data Pribadi."
+      }
+    ],
+    "runtime_metrics": {
+      "total_duration": 32386415600,
+      "load_duration": 10044900,
+      "prompt_eval_count": 1220,
+      "prompt_eval_duration": 15415451000,
+      "eval_count": 23,
+      "eval_duration": 2350094000
+    },
+    "disclaimer": "Informasi ini merupakan alat bantu penelusuran dokumen, bukan nasihat hukum."
+  },
+  "model": "qwen3:1.7b-q4_K_M",
+  "corpus_sha256": "b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5",
+  "review_status": "pending_human_review"
+}

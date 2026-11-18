@@ -9,6 +9,9 @@ storage:
 embedding:
   model: "intfloat/multilingual-e5-base"
   fallback_model: "intfloat/multilingual-e5-small"
+  revisions:
+    intfloat/multilingual-e5-base: "d128750597153bb5987e10b1c3493a34e5a4502a"
+    intfloat/multilingual-e5-small: "614241f622f53c4eeff9890bdc4f31cfecc418b3"
   device: "cpu"
   normalize_embeddings: true
   query_prefix: "query: "
@@ -35,11 +38,12 @@ reranker:
 generation:
   provider: "ollama"
   ollama_url: "http://127.0.0.1:11434/api/chat"
-  model: "qwen3:4b-instruct-2507-q4_K_M"
-  fallback_model: "qwen3:1.7b-q4_K_M"
+  model: "qwen3:1.7b-q4_K_M"
   num_ctx: 4096
+  num_gpu: null  # Ollama auto/offloading; CPU override remains available.
   temperature: 0
   max_concurrent: 1
+  timeout_seconds: 600
 
 evaluation:
   dataset_path: "evaluation/dataset/retrieval_sample.jsonl"

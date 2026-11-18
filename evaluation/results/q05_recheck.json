@@ -1,0 +1,46 @@
+{
+  "question_id": "Q05",
+  "split": "dev",
+  "question": "Dalam keadaan apa pemrosesan data pribadi boleh dikirim ke luar wilayah Indonesia?",
+  "relevant_chunk_ids": [
+    "UU_27_2022:article:56"
+  ],
+  "reviewer_notes": "Pasal 56 ayat (1)–(4) mengatur transfer ke luar wilayah hukum Indonesia dan syarat pelindungannya. Cocokkan dengan UU PDP, Pasal 56, halaman PDF 24–25.",
+  "is_answerable": true,
+  "question_type": "lookup",
+  "result": {
+    "answer": "Pasal 56\n(1) Pengendali Data Pribadi dapat melakukan transfer\nData Pribadi kepada Pengendali Data Pribadi dan/atau\nProsesor Data Pribadi di luar wilayah hukum Negara\nRepublik Indonesia sesuai dengan ketentuan yang\ndiatur dalarn Undang- Undang ini.\n(2) Dalam melakukan transfer Data Pribadi sebagaimana\ndimaksud pada ayat (l), Pengendali Data Pribadi wajib\nmemastikan negara tempat kedudukan Pengendali\nData Pribadi dan/ atau Prosesor Data Pribadi yang\n. menerima transfer Data Pribadi memiliki tingkat\nPelindungan Data Pribadi yang setara atau lebih tinggi\ndari yang diatur dalam Undang-Undang ini.\n(3) Dalam hal ketentuan sebagaimana dimaksud pada\nayat (21 tidak terpenuhi, Pengendali Data Pribadi wajib\nmemastikan terdapat Pelindungan Data Pribadi yang\nmemadai dan bersifat mengikat.\n(4) Dalam hal ketentuan sebagaimana dimaksud pada\nayat (21 dan ayat (3) tidak terpenuhi, Pengendali Data\nPribadi wajib mendapatkan persetqiuan Subjek Data\nPribadi.\n(5) Ketentuan lebih lanjut mengenai transfer Data Pribadi\n' diatur dalam Peraturan Pemerintah.\nSK No 155225 A\nBABVIII ...\nPRESIDEN\nREPUBLIK INDONESIA\n-25-",
+    "abstained": false,
+    "reason": null,
+    "retrieval_mode": "bm25",
+    "citations": [
+      {
+        "chunk_id": "UU_27_2022:article:56",
+        "document_id": "UU_27_2022",
+        "article": "Pasal 56",
+        "paragraph": null,
+        "page_start": 24,
+        "page_end": 25,
+        "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+        "status": "verified",
+        "effective_from": "2022-10-17",
+        "source_kind": "regulation_full_text",
+        "section_type": "batang_tubuh",
+        "document_title": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+        "quote": "Pasal 56\n(1) Pengendali Data Pribadi dapat melakukan transfer\nData Pribadi kepada Pengendali Data Pribadi dan/atau\nProsesor Data Pribadi di luar wilayah hukum Negara\nRepublik Indonesia sesuai dengan ketentuan yang\ndiatur dalarn Undang- Undang ini.\n(2) Dalam melakukan transfer Data Pribadi sebagaimana\ndimaksud pada ayat (l), Pengendali Data Pribadi wajib\nmemastikan negara tempat kedudukan Pengendali\nData Pribadi dan/ atau Prosesor Data Pribadi yang\n. menerima transfer Data Pribadi memiliki tingkat\nPelindungan Data Pribadi yang setara atau lebih tinggi\ndari yang diatur dalam Undang-Undang ini.\n(3) Dalam hal ketentuan sebagaimana dimaksud pada\nayat (21 tidak terpenuhi, Pengendali Data Pribadi wajib\nmemastikan terdapat Pelindungan Data Pribadi yang\nmemadai dan bersifat mengikat.\n(4) Dalam hal ketentuan sebagaimana dimaksud pada\nayat (21 dan ayat (3) tidak terpenuhi, Pengendali Data\nPribadi wajib mendapatkan persetqiuan Subjek Data\nPribadi.\n(5) Ketentuan lebih lanjut mengenai transfer Data Pribadi\n' diatur dalam Peraturan Pemerintah.\nSK No 155225 A\nBABVIII ...\nPRESIDEN\nREPUBLIK INDONESIA\n-25-"
+      }
+    ],
+    "runtime_metrics": {
+      "total_duration": 23463957000,
+      "load_duration": 2925917700,
+      "prompt_eval_count": 1255,
+      "prompt_eval_duration": 18271790000,
+      "eval_count": 23,
+      "eval_duration": 2246861000
+    },
+    "disclaimer": "Informasi ini merupakan alat bantu penelusuran dokumen, bukan nasihat hukum."
+  },
+  "model": "qwen3:1.7b-q4_K_M",
+  "corpus_sha256": "b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5",
+  "review_status": "pending_human_review"
+}

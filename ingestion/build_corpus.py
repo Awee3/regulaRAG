@@ -29,11 +29,19 @@ def build(manifest_path: Path, output_path: Path, root: Path) -> int:
             import fitz
         except ImportError as exc:
             raise RuntimeError("Pasang dependensi proyek: python -m pip install -e .") from exc
-        with fitz.open(path) as pdf:
-            pages = [page.get_text("text") for page in pdf]
+        try:
+            with fitz.open(path) as pdf:
+                if pdf.is_encrypted:
+                    raise ValueError("PDF terenkripsi tidak didukung")
+                pages = [page.get_text("text") for page in pdf]
+                if not any(page.strip() for page in pages):
+                    raise ValueError("PDF kosong/scan tidak memiliki text layer; OCR manual diperlukan")
+        except (RuntimeError, ValueError) as exc:
+            raise ValueError(f"Ekstraksi {doc['document_id']} gagal: {exc}") from exc
         chunks.extend(parse_pages(
             doc["document_id"], pages, doc["official_source_url"],
             doc.get("source_kind", "unknown"), doc.get("effective_from"), doc.get("status"),
+            document_title=doc.get("title"),
         ))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

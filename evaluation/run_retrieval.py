@@ -7,11 +7,12 @@ import hashlib
 import json
 import statistics
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app.reranking import RERANKER_MAX_LENGTH, RERANKER_MODEL, RERANKER_REVISION, rerank
 from app.search import DENSE_RRF_WEIGHT, EMBEDDING_MODEL, RRF_K, _rrf, search
+from evaluation.metrics import timed_call
 
 ROOT = Path(__file__).resolve().parents[1]
 TOP_K = 10
@@ -40,6 +41,7 @@ def _metrics(rows: list[dict], key: str) -> dict:
     return {
         "recall_at_5": statistics.mean(row[key]["recall_at_5"] for row in answerable),
         "mrr_at_10": statistics.mean(row[key]["mrr_at_10"] for row in answerable),
+        **({"recall_at_10": statistics.mean(row[key]["recall_at_10"] for row in answerable)} if all("recall_at_10" in row[key] for row in answerable) else {}),
     }
 
 
@@ -51,6 +53,7 @@ def _result(relevant: set[str], ranked: list[str]) -> dict:
     return {
         "ranked_chunk_ids": ranked[:TOP_K],
         "recall_at_5": recall_at_k(relevant, ranked, 5),
+        "recall_at_10": recall_at_k(relevant, ranked, 10),
         "mrr_at_10": reciprocal_rank_at_k(relevant, ranked, TOP_K),
         "first_relevant_rank": next((i for i, chunk_id in enumerate(ranked[:TOP_K], 1) if chunk_id in relevant), None),
     }
@@ -84,13 +87,14 @@ def run(dataset_path: Path, chunks_path: Path) -> dict:
     prepared = []
     config_scores = {config: [] for config in CONFIGS}
     for sample in dataset:
+        print(f"Retrieving {sample['question_id']}", flush=True)
         relevant = set(sample["relevant_chunk_ids"])
-        started = time.perf_counter()
-        bm25 = search(sample["question"], chunks_path, top_k=CANDIDATE_K, retrieval_mode="bm25")
-        bm25_seconds = time.perf_counter() - started
-        started = time.perf_counter()
-        dense = search(sample["question"], chunks_path, top_k=CANDIDATE_K, retrieval_mode="dense")
-        dense_seconds = time.perf_counter() - started
+        bm25, bm25_seconds = timed_call(
+            lambda sample=sample: search(sample["question"], chunks_path, top_k=CANDIDATE_K, retrieval_mode="bm25")
+        )
+        dense, dense_seconds = timed_call(
+            lambda sample=sample: search(sample["question"], chunks_path, top_k=CANDIDATE_K, retrieval_mode="dense")
+        )
         bm25_ids = [hit["chunk_id"] for hit in bm25]
         dense_ids = [hit["chunk_id"] for hit in dense]
         hybrid_by_config = {}
@@ -131,6 +135,7 @@ def run(dataset_path: Path, chunks_path: Path) -> dict:
     rerank(dataset[0]["question"], first_fused, min(TOP_K, len(first_fused)))
     rerank_warmup_seconds = time.perf_counter() - rerank_started
     for row in prepared:
+        print(f"Reranking {row['question_id']}", flush=True)
         row["hybrid_baseline"] = row["hybrid_by_config"][baseline_key]
         row["hybrid_tuned"] = row["hybrid_by_config"][chosen_key]
         del row["hybrid_by_config"]
@@ -153,7 +158,7 @@ def run(dataset_path: Path, chunks_path: Path) -> dict:
         }
 
     return {
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "generated_at_utc": datetime.now(UTC).isoformat(),
         "dataset": str(dataset_path), "question_count": len(dataset),
         "split_counts": {name: sum(row["split"] == name for row in dataset) for name in ("dev", "holdout")},
         "chunk_count": len({json.loads(line)["chunk_id"] for line in chunks_path.read_text(encoding="utf-8").splitlines() if line.strip()}),
@@ -163,6 +168,10 @@ def run(dataset_path: Path, chunks_path: Path) -> dict:
         "reranker_onnx_max_length": RERANKER_MAX_LENGTH, "reranker_device": "CPUExecutionProvider",
         "warmup_model_and_passage_embedding_seconds": round(dense_warmup_seconds, 2),
         "reranker_model_and_first_pass_warmup_seconds": round(rerank_warmup_seconds, 2),
+        "generation_evaluation": {
+            "status": "not_run",
+            "reason": "Retrieval benchmark tidak memanggil Ollama; gunakan template evaluasi jawaban manual.",
+        },
         "selection_metric": "dev MRR@10, tie-break Recall@5",
         "baseline_config": {"rrf_k": BASELINE_RRF_K, "dense_weight": BASELINE_DENSE_WEIGHT, "bm25_weight": 1.0},
         "current_config": {"rrf_k": RRF_K, "dense_weight": DENSE_RRF_WEIGHT, "bm25_weight": 1.0},
@@ -207,7 +216,12 @@ def markdown(report: dict) -> str:
         latency = report["summary"][split]["mean_latency_seconds"]
         lines.append(f"| {split} | {latency['bm25']:.3f} | {latency['dense']:.3f} | {latency['hybrid_fusion']:.6f} | {latency['reranker']:.3f} |")
     lines.append("Model loading and corpus passage embedding warmup are reported separately; generation latency and peak RAM/VRAM were not measured in this retrieval benchmark.")
-    lines.append("In this small sample, reranking improved dev MRR@10 (0.812 vs 0.616 for tuned hybrid) but lowered holdout MRR@10 (0.667 vs 0.917) and added about 7 seconds per query on CPU. Keep it optional; hybrid remains the UI default.")
+    lines.append("Reranking remains optional. Compare the measured dev and holdout tables before choosing a mode.")
+    lines.extend(["", "## Recall@10", "", "| Split | Mode | Recall@10 |", "|---|---|---:|"])
+    for split in ("dev", "holdout"):
+        for mode in ("bm25", "dense", "hybrid_baseline", "hybrid_tuned", "hybrid_rerank"):
+            value = report["summary"][split][mode].get("recall_at_10")
+            lines.append(f"| {split} | {mode} | {value:.3f} |" if value is not None else f"| {split} | {mode} | not measured |")
     lines.extend(["", "## Dev tuning grid (top 10)", "", "| RRF k | Dense weight | Recall@5 | MRR@10 |", "|---:|---:|---:|---:|"])
     for row in report["dev_tuning"][:10]:
         lines.append(f"| {row['rrf_k']} | {row['dense_weight']:g} | {row['recall_at_5']:.3f} | {row['mrr_at_10']:.3f} |")

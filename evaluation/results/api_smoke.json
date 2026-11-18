@@ -1,0 +1,36 @@
+{
+  "result": {
+    "answer": "Pasal 46 mengatur bahwa dalam hal terjadi kegagalan pelindungan data pribadi, pengendali data wajib memberitahu secara tertulis paling lambat 3 x 24 jam kepada subjek data dan lembaga. Pemberitahuan minimal mencakup data yang terungkap, waktu dan cara terungkapnya, serta upaya penanganan dan pemulihan. Jika tertentu, pengendali juga wajib memberitahu masyarakat.",
+    "abstained": false,
+    "reason": null,
+    "retrieval_mode": "bm25",
+    "citations": [
+      {
+        "chunk_id": "UU_27_2022:article:46",
+        "document_id": "UU_27_2022",
+        "article": "Pasal 46",
+        "paragraph": null,
+        "page_start": 19,
+        "page_end": 19,
+        "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+        "status": "verified",
+        "effective_from": "2022-10-17",
+        "source_kind": "regulation_full_text",
+        "section_type": "batang_tubuh",
+        "document_title": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+        "quote": "Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\nPengendali Data Pribadi wajib\npemberitahuan secara tertulis paling lambat 3 x 24\n(tiga kali dua puluh empat) jam kepada:\na. Subjek Data Pribadi; dan\nb. lembaga.\n(2) Pemberitahuan tertulis sebagaimana dimaksud pada\nayat (1) minimal memuat:\nData Pribadi yang terungkap;\nkapan dan bagaimana Data Pribadi terungkap; dan\nupaya penanganan dan pemulihan atas\nterungkapnya Data Pribadi oleh Pengendali Data\nPribadi.\n(3) Dalam hal tertentu, Pengendali Data Pribadi wajib\nmemberitahukan kepada masyarakat mengenai\nkegagalan Pelindungan Data Pribadi."
+      }
+    ],
+    "runtime_metrics": {
+      "total_duration": 43885394100,
+      "load_duration": 4865889500,
+      "prompt_eval_count": 659,
+      "prompt_eval_duration": 15906215000,
+      "eval_count": 126,
+      "eval_duration": 23097895000
+    },
+    "disclaimer": "Informasi ini merupakan alat bantu penelusuran dokumen, bukan nasihat hukum."
+  },
+  "latency_seconds": 43.95665960002225,
+  "review_status": "pending_human_review"
+}

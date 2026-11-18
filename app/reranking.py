@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import threading
 
-RERANKER_MODEL = "Horizon-Labs/multilingual-reranker-small"
-RERANKER_REVISION = "d35a2781eeb3de1d971ad328165277bdf5712e35"
-RERANKER_MAX_LENGTH = 384
+from app.config import CONFIG
+
+RERANKER_MODEL = CONFIG["reranker"]["model"]
+RERANKER_REVISION = CONFIG["reranker"]["revision"]
+RERANKER_MAX_LENGTH = CONFIG["reranker"]["max_length"]
 _runtime = None
 _runtime_lock = threading.Lock()
 
@@ -51,3 +53,10 @@ def rerank(question: str, candidates: list[dict], top_k: int) -> list[dict]:
         scores = session.run(None, inputs)[0].reshape(-1)
         ranked = sorted(zip(scores, candidates), key=lambda pair: (-float(pair[0]), pair[1]["chunk_id"]))
         return [dict(item, rerank_score=float(score)) for score, item in ranked[:top_k]]
+
+
+def release_runtime():
+    """Release ONNX weights before generation."""
+    global _runtime
+    with _runtime_lock:
+        _runtime = None
