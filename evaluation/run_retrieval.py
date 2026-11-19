@@ -10,13 +10,15 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
+from app.config import CONFIG
 from app.reranking import RERANKER_MAX_LENGTH, RERANKER_MODEL, RERANKER_REVISION, rerank
-from app.search import DENSE_RRF_WEIGHT, EMBEDDING_MODEL, RRF_K, _rrf, search
+from app.search import BM25_RRF_WEIGHT, DENSE_RRF_WEIGHT, RRF_K, _rrf, search
+from app.vector_index import CHUNKS, EMBEDDING_MODEL, EMBEDDING_REVISION
 from evaluation.metrics import timed_call
 
 ROOT = Path(__file__).resolve().parents[1]
 TOP_K = 10
-CANDIDATE_K = 20
+CANDIDATE_K = CONFIG["retrieval"]["candidate_k"]
 BASELINE_RRF_K = 60
 BASELINE_DENSE_WEIGHT = 1.0
 CONFIGS = [(k, weight) for k in (10, 30, 60, 100) for weight in (0.5, 0.75, 1.0, 1.5, 2.0)]
@@ -163,10 +165,11 @@ def run(dataset_path: Path, chunks_path: Path) -> dict:
         "split_counts": {name: sum(row["split"] == name for row in dataset) for name in ("dev", "holdout")},
         "chunk_count": len({json.loads(line)["chunk_id"] for line in chunks_path.read_text(encoding="utf-8").splitlines() if line.strip()}),
         "chunks_sha256": hashlib.sha256(chunks_path.read_bytes()).hexdigest(),
-        "dense_model": EMBEDDING_MODEL, "dense_device": "cpu", "candidate_k": CANDIDATE_K,
+        "dense_backend": "qdrant_local", "dense_model": EMBEDDING_MODEL, "dense_revision": EMBEDDING_REVISION,
+        "dense_device": CONFIG["embedding"]["device"], "candidate_k": CANDIDATE_K,
         "reranker_model": RERANKER_MODEL, "reranker_revision": RERANKER_REVISION,
         "reranker_onnx_max_length": RERANKER_MAX_LENGTH, "reranker_device": "CPUExecutionProvider",
-        "warmup_model_and_passage_embedding_seconds": round(dense_warmup_seconds, 2),
+        "warmup_dense_query_seconds": round(dense_warmup_seconds, 2),
         "reranker_model_and_first_pass_warmup_seconds": round(rerank_warmup_seconds, 2),
         "generation_evaluation": {
             "status": "not_run",
@@ -174,7 +177,7 @@ def run(dataset_path: Path, chunks_path: Path) -> dict:
         },
         "selection_metric": "dev MRR@10, tie-break Recall@5",
         "baseline_config": {"rrf_k": BASELINE_RRF_K, "dense_weight": BASELINE_DENSE_WEIGHT, "bm25_weight": 1.0},
-        "current_config": {"rrf_k": RRF_K, "dense_weight": DENSE_RRF_WEIGHT, "bm25_weight": 1.0},
+        "current_config": {"rrf_k": RRF_K, "dense_weight": DENSE_RRF_WEIGHT, "bm25_weight": BM25_RRF_WEIGHT},
         "selected_config": {"rrf_k": chosen["rrf_k"], "dense_weight": chosen["dense_weight"], "bm25_weight": 1.0},
         "dev_tuning": sorted(tuning, key=lambda x: (-x["mrr_at_10"], -x["recall_at_5"])),
         "summary": split_summary, "questions": prepared,
@@ -188,7 +191,7 @@ def markdown(report: dict) -> str:
         f"Generated UTC: {report['generated_at_utc']}",
         f"Questions: {report['split_counts']['dev']} dev / {report['split_counts']['holdout']} holdout | Chunks: {report['chunk_count']} | E5: `{report['dense_model']}` on CPU | Candidate depth: {report['candidate_k']}",
         f"Corpus SHA-256: `{report['chunks_sha256']}`",
-        f"One-time model and passage embedding warmup: {report['warmup_model_and_passage_embedding_seconds']} s (excluded from retrieval ranking metrics)",
+        f"First dense query via {report['dense_backend']}: {report['warmup_dense_query_seconds']} s (index opening and query encoder warmup)",
         f"Config selection uses {report['selection_metric']}. Selected RRF: k={selected['rrf_k']}, dense weight={selected['dense_weight']:g}, BM25 weight=1.",
         "",
         f"Reranker: `{report['reranker_model']}` at revision `{report['reranker_revision']}`, ONNX on CPU, max pair length {report['reranker_onnx_max_length']}. Recall@5 is the fraction of labeled relevant chunks found in the first five results. MRR@10 is the reciprocal rank of the first relevant result (miss=0), averaged across questions.",
@@ -215,7 +218,7 @@ def markdown(report: dict) -> str:
     for split in ("dev", "holdout"):
         latency = report["summary"][split]["mean_latency_seconds"]
         lines.append(f"| {split} | {latency['bm25']:.3f} | {latency['dense']:.3f} | {latency['hybrid_fusion']:.6f} | {latency['reranker']:.3f} |")
-    lines.append("Model loading and corpus passage embedding warmup are reported separately; generation latency and peak RAM/VRAM were not measured in this retrieval benchmark.")
+    lines.append("Dense passages are embedded during index build. This benchmark opens the persisted index and encodes queries.")
     lines.append("Reranking remains optional. Compare the measured dev and holdout tables before choosing a mode.")
     lines.extend(["", "## Recall@10", "", "| Split | Mode | Recall@10 |", "|---|---|---:|"])
     for split in ("dev", "holdout"):
@@ -238,7 +241,7 @@ def markdown(report: dict) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", type=Path, default=ROOT / "evaluation/dataset/retrieval_sample.jsonl")
-    parser.add_argument("--chunks", type=Path, default=ROOT / "data/processed/chunks.jsonl")
+    parser.add_argument("--chunks", type=Path, default=CHUNKS)
     parser.add_argument("--json-out", type=Path, default=ROOT / "evaluation/results/retrieval_tuning_latest.json")
     parser.add_argument("--report-out", type=Path, default=ROOT / "docs/evaluation_report.md")
     args = parser.parse_args()

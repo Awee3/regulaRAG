@@ -2,31 +2,37 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
-import os
 import re
 import threading
 from collections import Counter
 from pathlib import Path
 
 from app.config import CONFIG
+from app.vector_index import (
+    CHUNKS,
+    COLLECTION,
+    EMBEDDING,
+    EMBEDDING_MODEL,
+    EMBEDDING_REVISION,
+    DenseSearchUnavailable,
+    point_id,
+    qdrant_models,
+    read_index,
+)
 
 TOKEN = re.compile(r"[\w/.-]+", re.UNICODE)
-RRF_K = CONFIG["retrieval"]["rrf_k"]
-DENSE_RRF_WEIGHT = CONFIG["retrieval"]["dense_rrf_weight"]
-EMBEDDING_MODEL = os.getenv("REGULARAG_EMBEDDING_MODEL", CONFIG["embedding"]["model"])
-EMBEDDING_REVISION = os.getenv("REGULARAG_EMBEDDING_REVISION", CONFIG["embedding"].get("revisions", {}).get(EMBEDDING_MODEL))
+RETRIEVAL = CONFIG["retrieval"]
+RRF_K = RETRIEVAL["rrf_k"]
+DENSE_RRF_WEIGHT = RETRIEVAL["dense_rrf_weight"]
+BM25_RRF_WEIGHT = RETRIEVAL["bm25_rrf_weight"]
 _encoder = None
-_embedding_cache: tuple[tuple[str, int, int, str], list[dict], list[list[float]]] | None = None
 _dense_lock = threading.Lock()
 
 
-class DenseSearchUnavailable(RuntimeError):
-    """Raised when the optional dense-search dependency is not installed."""
-
-
-def _load_encoder():
+def _load_encoder(device: str = CONFIG["embedding"]["device"]):
     global _encoder
     if _encoder is None:
         try:
@@ -36,7 +42,7 @@ def _load_encoder():
                 'Dense search needs the optional dependencies. Install with: python -m pip install -e ".[dense]"'
             ) from exc
         try:
-            _encoder = SentenceTransformer(EMBEDDING_MODEL, revision=EMBEDDING_REVISION, device=CONFIG["embedding"]["device"])
+            _encoder = SentenceTransformer(EMBEDDING_MODEL, revision=EMBEDDING_REVISION, device=device)
         except Exception as exc:
             raise DenseSearchUnavailable(
                 f"Model embedding {EMBEDDING_MODEL} tidak dapat dimuat. Periksa koneksi unduhan atau cache model lokal."
@@ -44,8 +50,8 @@ def _load_encoder():
     return _encoder
 
 
-def _documents(chunks_path: Path) -> list[dict]:
-    return [json.loads(line) for line in chunks_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+def chunks_from_bytes(corpus: bytes) -> list[dict]:
+    return [json.loads(line) for line in corpus.splitlines() if line.strip()]
 
 
 def _normalize_query(question: str) -> str:
@@ -100,30 +106,52 @@ def _bm25(question: str, docs: list[dict], top_k: int) -> list[dict]:
     return [dict(doc, score=score) for _, score, doc in ranked[:top_k]]
 
 
-def _dense(question: str, chunks_path: Path, docs: list[dict], top_k: int) -> list[dict]:
-    global _embedding_cache
-    with _dense_lock:
-        stat = chunks_path.stat()
-        key = (str(chunks_path.resolve()), stat.st_mtime_ns, stat.st_size, EMBEDDING_MODEL)
-        if _embedding_cache is None or _embedding_cache[0] != key:
-            all_docs = _documents(chunks_path)
-            encoder = _load_encoder()
-            vectors = encoder.encode([f"passage: {doc['text']}" for doc in all_docs],
-                                     normalize_embeddings=True, show_progress_bar=False)
-            _embedding_cache = (key, all_docs, [list(map(float, vector)) for vector in vectors])
+def _dense(question: str, chunks_path: Path, digest: str, docs: list[dict], top_k: int,
+           document_ids: set[str] | None, normative_only: bool) -> list[dict]:
+    if not docs:
+        return []
+    by_id = {doc["chunk_id"]: doc for doc in docs}
+    with _dense_lock, read_index(chunks_path, digest) as (client, dimension):
+        models = qdrant_models()
+        filters = {}
+        if document_ids is not None:
+            filters["must"] = [models.FieldCondition(
+                key="document_id", match=models.MatchAny(any=sorted(document_ids)),
+            )]
+        if normative_only:
+            filters["must_not"] = [models.Filter(
+                must=[models.FieldCondition(key="source_kind", match=models.MatchValue(value="judgment_full_text"))],
+                must_not=[models.FieldCondition(key="section_type", match=models.MatchValue(value="amar_putusan"))],
+            )]
+        query_filter = models.Filter(**filters) if filters else None
         encoder = _load_encoder()
-        query_vector = list(map(float, encoder.encode([f"query: {_normalize_query(question)}"],
-                                                      normalize_embeddings=True, show_progress_bar=False)[0]))
-        allowed = {doc["chunk_id"] for doc in docs}
-        ranked = [(sum(a * b for a, b in zip(query_vector, vector)), doc)
-                  for doc, vector in zip(_embedding_cache[1], _embedding_cache[2])
-                  if doc["chunk_id"] in allowed]
-        ranked.sort(key=lambda item: (-item[0], item[1]["chunk_id"]))
-        return [dict(doc, score=score) for score, doc in ranked[:top_k]]
+        vector = list(map(float, encoder.encode(
+            [EMBEDDING["query_prefix"] + _normalize_query(question)],
+            normalize_embeddings=EMBEDDING["normalize_embeddings"], show_progress_bar=False,
+        )[0]))
+        if len(vector) != dimension or not all(map(math.isfinite, vector)) or not any(vector):
+            raise DenseSearchUnavailable("Vektor query tidak cocok dengan indeks. Bangun ulang dengan python -m ingestion.build_vector_index.")
+
+        query_options = {"query": vector, "query_filter": query_filter, "with_payload": ["chunk_id"]}
+        limit = min(top_k + 1, len(docs))
+        points = client.query_points(COLLECTION, limit=limit, **query_options).points
+        # Qdrant may truncate a tie before the corpus ID tie-break can be applied.
+        if top_k < len(points) < len(docs) and points[-1].score == points[-2].score:
+            limit = len(docs)
+            points = client.query_points(COLLECTION, limit=limit, **query_options).points
+        if len(points) != limit:
+            raise ValueError("Jumlah kandidat Qdrant tidak cocok dengan filter corpus.")
+        ranked = []
+        for point in points:
+            chunk_id = point.payload["chunk_id"]
+            if point.id != point_id(chunk_id):
+                raise ValueError("Identitas point tidak cocok dengan chunk.")
+            ranked.append(dict(by_id[chunk_id], score=point.score))
+        return sorted(ranked, key=lambda hit: (-hit["score"], hit["chunk_id"]))[:top_k]
 
 
 def _rrf(rankings: list[list[dict]], top_k: int, k: int = RRF_K,
-         weights: tuple[float, float] = (DENSE_RRF_WEIGHT, 1.0)) -> list[dict]:
+         weights: tuple[float, float] = (DENSE_RRF_WEIGHT, BM25_RRF_WEIGHT)) -> list[dict]:
     fused: dict[str, tuple[float, dict]] = {}
     for ranking, weight in zip(rankings, weights):
         for rank, doc in enumerate(ranking, 1):
@@ -134,27 +162,30 @@ def _rrf(rankings: list[list[dict]], top_k: int, k: int = RRF_K,
     return [dict(doc, score=score) for score, doc in ordered[:top_k]]
 
 
-def search(question: str, chunks_path: Path, top_k: int = 5,
+def search(question: str, chunks_path: Path, top_k: int = RETRIEVAL["default_top_k"],
            document_ids: set[str] | None = None, retrieval_mode: str = "bm25",
-           normative_only: bool = False) -> list[dict]:
+           normative_only: bool = False, *, corpus_bytes: bytes | None = None) -> list[dict]:
     if not question.strip() or not 1 <= top_k <= 20:
         raise ValueError("Pertanyaan wajib diisi dan top_k harus 1-20.")
     if retrieval_mode not in {"bm25", "dense", "hybrid"}:
         raise ValueError("retrieval_mode harus bm25, dense, atau hybrid.")
-    docs = _documents(chunks_path)
+    corpus = chunks_path.read_bytes() if corpus_bytes is None else corpus_bytes
+    docs = chunks_from_bytes(corpus)
     if normative_only:
         docs = [doc for doc in docs if doc.get("source_kind") != "judgment_full_text" or doc.get("section_type") == "amar_putusan"]
     if document_ids is not None:
         docs = [doc for doc in docs if doc["document_id"] in document_ids]
     if retrieval_mode == "bm25":
         return _bm25(question, docs, top_k)
-    # Retrieve a shared candidate pool before returning top_k; this leaves BM25's baseline unchanged.
-    candidate_k = min(len(docs), max(top_k, CONFIG["retrieval"]["candidate_k"]))
-    dense = _dense(question, chunks_path, docs, candidate_k)
+    digest = hashlib.sha256(corpus).hexdigest()
     if retrieval_mode == "dense":
-        return dense[:top_k]
-    lexical = _bm25(question, docs, candidate_k)
-    return _rrf([dense, lexical], top_k, weights=(DENSE_RRF_WEIGHT, 1.0))
+        return _dense(question, chunks_path, digest, docs, top_k, document_ids, normative_only)
+    pool_k = max(top_k, RETRIEVAL["candidate_k"])
+    dense_k = min(pool_k, max(top_k, RETRIEVAL["dense_top_k"]))
+    bm25_k = min(pool_k, max(top_k, RETRIEVAL["bm25_top_k"]))
+    dense = _dense(question, chunks_path, digest, docs, dense_k, document_ids, normative_only)
+    lexical = _bm25(question, docs, bm25_k)
+    return _rrf([dense, lexical], top_k)
 
 
 if __name__ == "__main__":
@@ -164,15 +195,18 @@ if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     cli = argparse.ArgumentParser()
     cli.add_argument("question")
-    cli.add_argument("--chunks", type=Path, default=Path("data/processed/chunks.jsonl"))
+    cli.add_argument("--chunks", type=Path, default=CHUNKS)
     cli.add_argument("--mode", choices=("bm25", "dense", "hybrid"), default="bm25")
     args = cli.parse_args()
-    hits = search(args.question, args.chunks, retrieval_mode=args.mode)
+    try:
+        hits = search(args.question, args.chunks, retrieval_mode=args.mode)
+    except DenseSearchUnavailable as exc:
+        cli.exit(1, f"{exc}\n")
     print(json.dumps(hits, ensure_ascii=False, indent=2) if hits else "Tidak ada evidence; abstain.")
 
 
 def release_encoder():
-    """Release model weights while retaining cached passage vectors."""
+    """Release encoder weights while retaining the persisted vector index."""
     global _encoder
     with _dense_lock:
         _encoder = None

@@ -5,6 +5,7 @@ storage:
   manifest_path: "data/manifest.jsonl"
   raw_dir: "data/raw"
   chunks_path: "data/processed/chunks.jsonl"
+  qdrant_path: "data/processed/qdrant"
 
 embedding:
   model: "intfloat/multilingual-e5-base"

@@ -60,12 +60,24 @@ Kutipan panjang dibatasi context 4096 token; evidence awal dapat berupa cuplikan
 
 ## Mode retrieval opsional
 
+BM25 dapat langsung digunakan setelah corpus dibangun. Untuk mode dense, hybrid, dan hybrid + reranker, hentikan UI/API, pasang extra, lalu bangun indeks Qdrant Local dari chunk yang sudah diverifikasi oleh ingestion.
+
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dense,rerank]"
-.\.venv\Scripts\python.exe -m app.search "kegagalan pelindungan data" --mode hybrid
+.\.venv\Scripts\python.exe -m ingestion.build_corpus
+.\.venv\Scripts\python.exe -m ingestion.build_vector_index
+.\.venv\Scripts\python.exe -m app.search "Apa isi Pasal 46?" --mode dense
 ```
 
-Embedding E5 dan reranker adalah komponen retrieval, bukan LLM alternatif. Model retrieval diunduh saat pertama dipakai. Empat mode tetap tersedia untuk eksperimen; tidak ada klaim hybrid/reranker selalu lebih baik. Model dilepas sebelum generation. Config di `configs/default.yaml`; `.env` opsional mendukung KEY=value sederhana, menimpa default tetapi tidak environment yang sudah di-set. Pertanyaan hanya dikirim ke Ollama localhost, tidak dicatat lengkap oleh aplikasi.
+Builder menghitung embedding passage di CPU dan menyimpan snapshot di `data/processed/qdrant/`. Setelah restart, kueri dense menghitung embedding pertanyaan dan mengambil teks citation dari corpus. Unduhan awal bobot E5 terjadi saat build jika cache kosong. Reranker ONNX diunduh saat pertama dipilih. Model retrieval dilepas sebelum generation.
+
+Mulai kembali UI atau API setelah build. Jalankan satu proses pembaca untuk setiap direktori Qdrant Local. Tutup proses itu sebelum memakai CLI dense, evaluator atau builder pada direktori yang sama. `GET /health` melaporkan kesiapan corpus pada `index_ready` dan kesiapan indeks Qdrant pada `dense_index_ready`. Health dapat membuka indeks tanpa memuat model E5.
+
+Jika indeks hilang, rusak, atau kedaluwarsa setelah corpus atau konfigurasi embedding berubah, hentikan pembaca dan ulangi `python -m ingestion.build_vector_index`, kemudian coba kueri dense lagi. BM25 tetap dapat digunakan selama pemulihan. Builder mengaktifkan snapshot lengkap melalui `active.txt`. Untuk rollback, hentikan pembaca dan isi penunjuk itu dengan nama direktori snapshot lama yang cocok dengan corpus dan konfigurasi saat ini, lalu ulangi smoke dense dan periksa citation. Manifest aktif tetap menjadi sumber filter izin dokumen.
+
+Lokasi corpus dan indeks dikonfigurasi di `configs/default.yaml`. Untuk corpus eksperimen, berikan `--chunks` yang sama pada builder, CLI pencarian dan evaluator. Secara default indeks eksperimen berada di samping file tersebut, dengan akhiran `.qdrant`. Untuk lokasi lain, atur `REGULARAG_QDRANT_PATH` di lingkungan builder dan pembaca atau gunakan `--index-dir` pada builder dan variabel yang sama pada pembaca. Model embedding kustom memerlukan SHA commit tetap di `REGULARAG_EMBEDDING_REVISION`.
+
+`.env` opsional mendukung `KEY=value`. Nilai environment yang sudah disetel memiliki prioritas. Pertanyaan untuk generation hanya dikirim ke Ollama localhost dan aplikasi tidak mencatatnya secara penuh.
 
 ## Verifikasi kualitas
 
@@ -76,7 +88,11 @@ Embedding E5 dan reranker adalah komponen retrieval, bukan LLM alternatif. Model
 
 Runner menyimpan hanya pertanyaan benchmark publik yang sudah tersedia; aplikasi tidak menyimpan pertanyaan penggunaan biasa. Jangan menambahkan pertanyaan sensitif ke benchmark. Laporan review AI dipisahkan dari validasi manusia. Bukti sumber harus diperiksa sebelum membuat label jawaban acuan. Uji kasus kegagalan di `tests/` dan hasil eksperimen di `docs/` membantu memahami batas pipeline.
 
-Evaluasi retrieval historis (bukan evaluasi ulang model LLM): `python -m evaluation.run_retrieval`. Laporan lama menyimpan checksum corpus dan konfigurasi saat run, bukan bukti kualitas jalur jawaban yang berubah setelahnya. Artefak 4B/hardware lama hanya arsip; tidak masuk kriteria penerimaan sekarang.
+Setelah build indeks, jalankan evaluasi retrieval dengan keluaran baru agar laporan sebelumnya tetap tersedia.
+
+```powershell
+.\.venv\Scripts\python.exe -m evaluation.run_retrieval --json-out data/processed/retrieval.json --report-out data/processed/retrieval.md
+```
 
 ## Sumber dan lisensi
 

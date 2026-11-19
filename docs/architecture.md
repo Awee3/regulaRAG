@@ -4,6 +4,8 @@ Corpus resmi dipulihkan dari manifest dengan checksum, lalu PDF diekstrak per ha
 
 Retrieval BM25 default mencari kandidat pada sumber normatif; empat mode tetap tersedia untuk eksperimen. Jalur jawaban menyaring argumen pihak sebelum memilih evidence. Amar terkait pasal dari kandidat utama dapat ditambahkan berdasarkan catatan relasi manifest; ini aturan statis terbatas dan bukan pemantauan yurisprudensi otomatis. Filter dokumen tetap dihormati; bila putusan terkait diperlukan tetapi dikecualikan, sistem abstain.
 
+Builder vektor mengubah chunk hasil ingestion menjadi snapshot Qdrant Local dengan cosine similarity dan UUID yang diturunkan dari ID chunk. Snapshot menyimpan hash corpus, identitas encoder, dan metadata filter. Penunjuk `active.txt` diganti setelah builder membuka ulang snapshot dan memverifikasi seluruh point. Pada kueri dense, Qdrant menerapkan filter dokumen dan bagian putusan sebelum top-k. Pipeline mengambil teks, halaman, dan URL citation dari chunk dengan hash corpus yang sama.
+
 LLM tunggal Qwen3 1.7B memilih ID cuplikan yang diberikan. Backend mengubah ID menjadi teks asli sumber, menentukan citation sebenarnya, dan memeriksa bahwa jawabannya memang cuplikan sumber. Model tidak bebas menulis angka, nama atau ringkasan hukum. Salah memilih cuplikan masih mungkin terjadi; autentisitas teks berbeda dari relevansi jawaban.
 
 Abstention konservatif meliputi pertanyaan di luar topik corpus, permintaan nama pejabat, dokumen bernomor yang tidak ada dalam evidence, definisi tanpa teks definisi eksplisit, dan output yang tidak sesuai sumber. Pertanyaan dasar pemrosesan serta transfer luar negeri memerlukan teks norma yang menyatakan topik tersebut, bukan ketentuan masa transisi atau cakupan teritorial.

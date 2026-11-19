@@ -39,7 +39,9 @@ class RegressionTests(unittest.TestCase):
 
     def test_query_never_searches_revoked_manifest_documents(self):
         from app import main
-        with patch.object(main, "documents", return_value=[{"document_id":"revoked", "status":"unverified", "corpus_eligible":False}]), patch.object(main, "search", return_value=[]) as search:
+        with patch.object(main, "documents", return_value=[{"document_id":"revoked", "status":"unverified", "corpus_eligible":False}]), \
+                patch.object(main, "CHUNKS") as chunks, patch.object(main, "search", return_value=[]) as search:
+            chunks.read_bytes.return_value = b""
             result = main.query(main.QueryRequest(question="apa?"))
         self.assertTrue(result["abstained"])
         self.assertEqual(search.call_args.args[3], set())
