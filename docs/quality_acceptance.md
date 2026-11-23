@@ -1,4 +1,35 @@
-# Penerimaan kualitas jalur 1.7B — 2026-11-17
+# Penerimaan kualitas RegulaRAG
+
+## Migrasi Qdrant Local
+
+Pengujian 18 November 2026 memakai corpus identik berisi 593 chunk serta 29 pertanyaan dev dan 21 holdout. Hash SHA-256 corpus, manifest, dan dataset dicatat sebelum dan sesudah di `data/processed/migrasi-qdrant-20261118-114459/`. Corpus dibangun ulang dari empat PDF yang lolos checksum dan menghasilkan SHA-256 `b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5`.
+
+Run memakai Python 3.11.9, Sentence Transformers 5.1.2 dan ONNX Runtime 1.31.1. Jalur baru memakai `qdrant-client==1.17.1`. Revisi E5 base adalah `d128750597153bb5987e10b1c3493a34e5a4502a` dan revisi reranker ONNX adalah `d35a2781eeb3de1d971ad328165277bdf5712e35`. Versi paket lengkap ada di `paket-sebelum.txt` dan `paket-sesudah.txt`.
+
+Semua urutan top 10 identik untuk 50 pertanyaan di lima konfigurasi. Metrik dihitung pada pertanyaan berlabel answerable. Kedalaman kandidat 20 digunakan pada kedua run. Pemilihan pada dev memilih RRF `k=10` dengan bobot dense 2 dan BM25 1 pada kedua run, sama dengan pengaturan aplikasi. RRF tetap dengan `k=60` dan bobot 1 masing-masing juga identik sebelum dan sesudah.
+
+| Mode | Dev Recall@5 / Recall@10 / MRR@10 | Holdout Recall@5 / Recall@10 / MRR@10 |
+|---|---:|---:|
+| BM25 | 0,5345 / 0,5862 / 0,4383 | 0,6500 / 0,7333 / 0,5151 |
+| Dense | 0,6667 / 0,7701 / 0,6007 | 0,4000 / 0,4333 / 0,3574 |
+| Hybrid RRF tetap | 0,6552 / 0,7356 / 0,5802 | 0,5000 / 0,7833 / 0,4617 |
+| Hybrid RRF terpilih | 0,6667 / 0,7701 / 0,6434 | 0,4333 / 0,4333 / 0,4333 |
+| Hybrid + reranker | 0,7414 / 0,8563 / 0,6866 | 0,4667 / 0,5333 / 0,2845 |
+
+Perbandingan per pertanyaan tersimpan di `sebelum.json`, `sesudah.json`, dan `perbandingan.json` dalam direktori run. Hasil mengukur kesetaraan retrieval pada sampel ini. AppTest Streamlit pada mode hybrid menghasilkan cuplikan Pasal 46. ID chunk, dokumen, kutipan, halaman 19 PDF, dan URL dicocokkan dengan corpus.
+
+Smoke hybrid Qwen3 1.7B terdiri dari delapan pertanyaan answerable dan dua di luar corpus. Tujuh pertanyaan mendapat jawaban ekstraktif, dan keenam kasus Q01–Q05 serta Q07 mengutip chunk yang sesuai label benchmark. Q45 dan Q46 abstain tanpa citation. Pemeriksaan otomatis mencocokkan semua citation yang dikembalikan dengan ID, dokumen, kutipan, halaman, dan URL chunk asli. Seluruh 10 kasus selesai tanpa error runtime.
+
+Review Codex (AI) menemukan dua kegagalan kualitas jawaban.
+
+- **Q06** memilih Pasal 68 tentang pemalsuan data ketika pertanyaan meminta sanksi pengungkapan. Bukti yang diberikan ke model mencakup Pasal 67 dan Pasal 65.
+- **Q08** abstain pada pertanyaan tentang hak akses dan salinan. Guard topik menolak frasa `informasi pribadinya` bahkan saat Pasal 7 diberikan langsung ke seleksi evidence.
+
+Pemutaran ulang algoritme ranking sebelum migrasi dengan vektor E5 tersimpan menghasilkan urutan 20 kandidat normatif yang sama untuk Q06 dan Q08. Probe aktual `Apa isi Pasal 46?` juga memiliki top 5 dense yang sama sebelum dan sesudah. Keduanya melewatkan chunk Pasal 46 di lima besar. Artefak pemeriksaan tersedia di `jawaban-hybrid.jsonl`, `diagnosis-jawaban.json`, `probe-pasal46-sebelum.json`, dan `smoke-ui.json`. Validasi manusia masih tertunda.
+
+Snapshot Qdrant lokal siap untuk mode retrieval vektor. BM25 adalah mode jawaban default. Penggunaan hybrid sebagai jalur jawaban standar menunggu perbaikan relevansi jawaban dan abstention di atas.
+
+## Penerimaan kualitas jalur 1.7B — 17 November 2026
 
 ## Scope dan status
 

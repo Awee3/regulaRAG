@@ -51,21 +51,33 @@ Gunakan satu proses aplikasi untuk menghindari duplikasi model. LLM menggunakan 
 ## Cara kerja dan batas akurasi
 
 1. Manifest mengizinkan hanya dokumen aktif terverifikasi dan checksum yang cocok.
-2. Retrieval memilih kandidat BM25 (default), dense, hybrid RRF atau hybrid + reranker.
+2. BM25 (default) memakai teks chunk. Jalur dense memakai embedding pertanyaan E5 untuk mencari vektor yang sudah disimpan di Qdrant Local. Hybrid menggabungkan kedua ranking dengan RRF dan dapat memakai reranker CPU.
 3. Jalur jawaban mengecualikan argumen pihak dalam putusan. Untuk pasal dengan relasi uji materi yang dicatat manifest, amar relevan disertakan. Metadata relasi statis, bukan analisis hukum otomatis.
 4. Model 1.7B memilih cuplikan asli. JSON schema membatasi teks jawaban ke pilihan kutipan; backend memeriksa kecocokan kutipan dan ID evidence. Angka dan syarat sumber tidak diparafrasakan.
 5. Bukti tidak cukup atau output tidak valid menghasilkan abstention/error yang eksplisit. Citation ID valid dan teks asli tetap belum menjamin kutipannya menjawab pertanyaan; lihat hasil uji kualitas terbaru.
 
-Kutipan panjang dibatasi context 4096 token; evidence awal dapat berupa cuplikan bertanda excerpt_only. Model dapat memilih ayat yang kurang relevan, menolak pertanyaan answerable, atau tidak menangkap semua bukti lintas dokumen. Teks hasil ekstraksi PDF dapat kehilangan kata; cocokkan bunyi persis dengan PDF resmi. Putusan yang belum dapat dipisahkan dengan aman tidak dipakai sebagai dasar jawaban default.
+Kutipan panjang dibatasi context 4096 token; evidence awal dapat berupa cuplikan bertanda excerpt_only. Model dapat memilih ayat yang kurang relevan, menolak pertanyaan answerable, atau tidak menangkap semua bukti lintas dokumen. Teks hasil ekstraksi PDF dapat kehilangan kata; cocokkan bunyi persis dengan PDF resmi. Putusan yang belum dapat dipisahkan dengan aman tidak dipakai sebagai dasar jawaban default. [Diagram alur sistem](docs/architecture.md)
 
 ## Mode retrieval opsional
 
+BM25 dapat langsung digunakan setelah corpus dibangun. Untuk mode dense, hybrid, dan hybrid + reranker, hentikan UI/API, pasang extra, lalu bangun indeks Qdrant Local dari chunk yang sudah diverifikasi oleh ingestion.
+
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dense,rerank]"
-.\.venv\Scripts\python.exe -m app.search "kegagalan pelindungan data" --mode hybrid
+.\.venv\Scripts\python.exe -m ingestion.build_corpus
+.\.venv\Scripts\python.exe -m ingestion.build_vector_index
+.\.venv\Scripts\python.exe -m app.search "Apa isi Pasal 46?" --mode dense
 ```
 
-Embedding E5 dan reranker adalah komponen retrieval, bukan LLM alternatif. Model retrieval diunduh saat pertama dipakai. Empat mode tetap tersedia untuk eksperimen; tidak ada klaim hybrid/reranker selalu lebih baik. Model dilepas sebelum generation. Config di `configs/default.yaml`; `.env` opsional mendukung KEY=value sederhana, menimpa default tetapi tidak environment yang sudah di-set. Pertanyaan hanya dikirim ke Ollama localhost, tidak dicatat lengkap oleh aplikasi.
+Builder menghitung embedding passage di CPU dan menyimpan snapshot di `data/processed/qdrant/`. Setelah restart, kueri dense menghitung embedding pertanyaan dan mengambil teks citation dari corpus. Unduhan awal bobot E5 terjadi saat build jika cache kosong. Reranker ONNX diunduh saat pertama dipilih. Model retrieval dilepas sebelum generation.
+
+Mulai kembali UI atau API setelah build. Jalankan satu proses pembaca untuk setiap direktori Qdrant Local. Tutup proses itu sebelum memakai CLI dense, evaluator atau builder pada direktori yang sama. `GET /health` melaporkan kesiapan corpus pada `index_ready` dan kesiapan indeks Qdrant pada `dense_index_ready`. Health dapat membuka indeks tanpa memuat model E5.
+
+Jika indeks hilang, rusak, atau kedaluwarsa setelah corpus atau konfigurasi embedding berubah, hentikan pembaca dan ulangi `python -m ingestion.build_vector_index`, kemudian coba kueri dense lagi. BM25 tetap dapat digunakan selama pemulihan. Builder mengaktifkan snapshot lengkap melalui `active.txt`. Untuk rollback, hentikan pembaca dan isi penunjuk itu dengan nama direktori snapshot lama yang cocok dengan corpus dan konfigurasi saat ini, lalu ulangi smoke dense dan periksa citation. Manifest aktif tetap menjadi sumber filter izin dokumen.
+
+Lokasi corpus dan indeks dikonfigurasi di `configs/default.yaml`. Untuk corpus eksperimen, berikan `--chunks` yang sama pada builder, CLI pencarian dan evaluator. Secara default indeks eksperimen berada di samping file tersebut, dengan akhiran `.qdrant`. Untuk lokasi lain, atur `REGULARAG_QDRANT_PATH` di lingkungan builder dan pembaca atau gunakan `--index-dir` pada builder dan variabel yang sama pada pembaca. Model embedding kustom memerlukan SHA commit tetap di `REGULARAG_EMBEDDING_REVISION`.
+
+`.env` opsional mendukung `KEY=value`. Nilai environment yang sudah disetel memiliki prioritas. Pertanyaan untuk generation hanya dikirim ke Ollama localhost dan aplikasi tidak mencatatnya secara penuh.
 
 ## Verifikasi kualitas
 
@@ -76,7 +88,11 @@ Embedding E5 dan reranker adalah komponen retrieval, bukan LLM alternatif. Model
 
 Runner menyimpan hanya pertanyaan benchmark publik yang sudah tersedia; aplikasi tidak menyimpan pertanyaan penggunaan biasa. Jangan menambahkan pertanyaan sensitif ke benchmark. Laporan review AI dipisahkan dari validasi manusia. Bukti sumber harus diperiksa sebelum membuat label jawaban acuan. Uji kasus kegagalan di `tests/` dan hasil eksperimen di `docs/` membantu memahami batas pipeline.
 
-Evaluasi retrieval historis (bukan evaluasi ulang model LLM): `python -m evaluation.run_retrieval`. Laporan lama menyimpan checksum corpus dan konfigurasi saat run, bukan bukti kualitas jalur jawaban yang berubah setelahnya. Artefak 4B/hardware lama hanya arsip; tidak masuk kriteria penerimaan sekarang.
+Setelah build indeks, jalankan evaluasi retrieval dengan keluaran baru agar laporan sebelumnya tetap tersedia.
+
+```powershell
+.\.venv\Scripts\python.exe -m evaluation.run_retrieval --json-out data/processed/retrieval.json --report-out data/processed/retrieval.md
+```
 
 ## Sumber dan lisensi
 
@@ -92,6 +108,8 @@ Hasil kualitas pipeline terkini: [docs/quality_acceptance.md](docs/quality_accep
 
 ## Portfolio and LinkedIn demo
 
-[The English portfolio report](docs/portfolio/report.md) explains the problem, architecture, technical choices, evaluation, fixes, and limitations. The [2–3 minute demo guide](docs/portfolio/demo.md) includes three scenarios with actual screenshots. LinkedIn materials include an [eight-page English PDF carousel](docs/portfolio/regularag-linkedin.pdf), [editable PowerPoint](docs/portfolio/regularag-linkedin.pptx), and [caption](docs/portfolio/caption.md).
+The English portfolio traces the Qdrant Local implementation from verified PDFs through indexing, query routing, evidence selection, and cited excerpts. The demo guide includes a hybrid walkthrough and archived Indonesian UI screenshots. [Portfolio report](docs/portfolio/report.md) · [2–3 minute demo guide](docs/portfolio/demo.md) · [Eight-page LinkedIn PDF](docs/portfolio/regularag-linkedin.pdf) · [Editable PowerPoint](docs/portfolio/regularag-linkedin.pptx) · [Caption](docs/portfolio/caption.md)
 
-AI review is reported separately from human validation, which is not yet available. Original Indonesian screenshots and legal excerpts remain unchanged evidence, with English explanations and clearly labeled translations. The recorded demo does not update development scores or legal verification dates. BPK was unavailable during that demo; source inspection used an official local PDF with a matching checksum. Recurring footers, page numbers, and display dates remain removed from the carousel.
+The LinkedIn video follows the live Streamlit interface through BM25, Dense/E5, the source citation, and an out-of-collection query. The walkthrough pairs the Indonesian interface with English narration and captions. [LinkedIn MP4](docs/portfolio/video/regularag-linkedin.mp4) · [Offline HTML](docs/portfolio/video/regularag-linkedin.html) · [Rebuild and playback checks](docs/portfolio/video/README.md)
+
+The migration comparison matched the top-ten ranking on 50 questions across five retrieval configurations. AI review of the hybrid answer smoke test found a wrong source selection and a false abstention. Human validation is pending. [Migration evaluation](docs/quality_acceptance.md#migrasi-qdrant-local)

@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RegulaRAG Indonesia · A citation walkthrough</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #edf5ff;
+    --muted: #b9cbe1;
+    --accent: #8df5d3;
+    --amber: #ffd391;
+    --rule: #334d67;
+    font-family: Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: #060e1a; color: var(--ink); }
+  #stage {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    container-type: inline-size;
+    background:
+      radial-gradient(ellipse at 88% 6%, #233856 0%, transparent 62%),
+      radial-gradient(ellipse at 0% 83%, #123637 0%, transparent 55%),
+      #0a1526;
+  }
+  #stage::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    content: "";
+    background: radial-gradient(circle, #a8d7f1 1px, transparent 1.5px) 0 0 / 3cqw 3cqw;
+    opacity: .18;
+    mask-image: linear-gradient(123deg, transparent 20%, #000 85%);
+  }
+  .scene { position: absolute; inset: 9.4cqw 8.8cqw 25.6cqw; }
+  .scene > :first-child { margin-top: 0; }
+  p, h1, h2, h3 { margin: 0; }
+  h1, h2, h3, .question { text-wrap: balance; }
+  h1 { font-size: 12cqw; line-height: .99; letter-spacing: -.067em; }
+  h1 span { display: block; font-size: 9.3cqw; font-weight: 500; color: var(--accent); }
+  h2 { font-size: 7.3cqw; line-height: 1.02; letter-spacing: -.052em; }
+  .kicker {
+    margin-bottom: 1.8cqw;
+    color: var(--accent);
+    font-size: 3.6cqw;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .card {
+    color: var(--ink);
+    background: #14263c;
+    border: 1px solid #45637f;
+    border-radius: 2.6cqw;
+  }
+  .question-box {
+    margin-top: 7.2cqw;
+    padding: 3.7cqw 4cqw 4.4cqw;
+    border-left: .55cqw solid var(--accent);
+  }
+  .question { font-size: 6.1cqw; font-weight: 700; line-height: 1.12; letter-spacing: -.03em; }
+  .question .emphasis { color: var(--accent); }
+  .intro-trace {
+    position: absolute;
+    inset: auto 0 3.5cqw 0;
+    height: 13cqw;
+    border-block-end: 1px solid var(--rule);
+    border-inline-end: 1px solid var(--rule);
+    border-bottom-right-radius: 3cqw;
+  }
+  .intro-trace::before {
+    position: absolute;
+    right: calc(100% - var(--phase) * 94%);
+    bottom: -.7cqw;
+    width: 1.4cqw;
+    height: 1.4cqw;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 3cqw #8df5d37c;
+    content: "";
+  }
+  .reveal { opacity: var(--reveal, 0); }
+  .lift { transform: translateY(calc((1 - var(--reveal, 0)) * 1.9cqw)); }
+  .split { position: relative; display: grid; grid-template-columns: 30% 1fr; gap: 11%; align-items: center; margin-top: 9cqw; min-height: 47cqw; }
+  .paper {
+    position: relative;
+    height: 30cqw;
+    padding: 3.4cqw 2.8cqw;
+    clip-path: polygon(0 0, 72% 0, 100% 23%, 100% 100%, 0 100%);
+    background: #eaf3ff;
+    color: #15374b;
+    box-shadow: inset 0 -.5cqw #adc8df;
+  }
+  .paper::after { position: absolute; inset: 0 0 auto auto; width: 28%; height: 23%; background: #b8cce1; content: ""; }
+  .paper-label { display: block; margin-top: 1.8cqw; font-size: 3.8cqw; font-weight: 700; }
+  .lines { display: grid; gap: 1.6cqw; }
+  .lines i { display: block; height: .75cqw; border-radius: 20px; background: currentColor; opacity: .5; }
+  .lines i:last-child { width: 71%; }
+  .paper .lines { margin-top: 3.8cqw; }
+  .split::before { position: absolute; left: 30%; width: 11%; top: 49%; border-top: 1px solid #7faeae; content: ""; }
+  .fragments { display: grid; gap: 2cqw; transform: translateX(calc((var(--reveal, 0) - 1) * 8cqw)); }
+  .fragment { height: 6.8cqw; align-content: center; padding-inline: 3cqw; color: #8faed1; opacity: .55; }
+  .passage { padding: 2.7cqw; border-color: var(--accent); box-shadow: 0 0 3cqw #84e4db21; }
+  .passage strong { display: block; font-size: 4.45cqw; }
+  .passage .page { display: block; margin-top: 1cqw; color: var(--muted); font-size: 3.9cqw; }
+  .rankings { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqw; margin-top: 6cqw; }
+  .rank { padding: 2.5cqw 2.3cqw 2.8cqw; }
+  .rank h3 { min-height: 10.5cqw; font-size: 4.55cqw; line-height: 1.06; letter-spacing: -.027em; }
+  .rank p { margin: 1.6cqw 0 2.6cqw; color: var(--muted); font-size: 3.7cqw; font-weight: 700; }
+  .rank .lines { gap: 1cqw; }
+  .rank .lines i { width: 100%; height: 2.8cqw; background: #426482; opacity: 1; }
+  .rank .lines .match { background: #57b9ab; }
+  .connect { height: 7.2cqw; margin: 0 24%; border: 1px solid #7ac4bc; border-top: 0; border-radius: 0 0 2cqw 2cqw; }
+  .combine { margin: 0 auto; padding: 2.5cqw; border-color: var(--accent); color: var(--accent); text-align: center; font-size: 4.8cqw; font-weight: 700; }
+  .choice { margin-top: 6.2cqw; padding: 3.25cqw; border-color: var(--accent); }
+  .choice code { color: var(--ink); font: 700 4.6cqw Consolas, monospace; white-space: nowrap; }
+  .validated { margin: 2.8cqw 0; color: var(--accent); font-size: 4cqw; font-weight: 700; line-height: 1.15; }
+  .citation { padding: 3cqw 3.3cqw; background: #eaf3ff; border-color: #eaf3ff; color: #173246; }
+  .citation p { font-size: 4.2cqw; font-weight: 700; }
+  .citation strong { display: block; margin-top: 1.1cqw; font-size: 5.6cqw; letter-spacing: -.035em; }
+  .evidence { padding: 3.6cqw 3.6cqw 3.1cqw; border-radius: 3cqw; background: #eaf3ff; color: #152639; }
+  .law { font-size: 4.2cqw; font-weight: 700; }
+  .evidence h2 { margin-top: 1.2cqw; font-size: 6cqw; text-wrap: wrap; }
+  .evidence h2 span { white-space: nowrap; }
+  .evidence .reveal { max-height: calc(var(--reveal) * 23cqw); overflow: hidden; }
+  .translation { margin-top: 2.6cqw; color: #235a54; font-size: 3.75cqw; font-weight: 700; }
+  .deadline { margin: .55cqw 0 2.15cqw; font-size: 6.6cqw; letter-spacing: -.045em; line-height: 1; }
+  .deadline strong { margin-right: .8cqw; font-size: 10.8cqw; }
+  .compare { display: grid; gap: 1.5cqw; }
+  .evidence .compare { max-height: calc(var(--reveal) * 31cqw); }
+  .compare > div { padding: 1.7cqw 2.1cqw; border-radius: 1.45cqw; background: #d7e7f6; }
+  .compare-label { margin-bottom: .55cqw; color: #254562; font-size: 3.65cqw; font-weight: 700; }
+  .quote { font-size: 4.15cqw; font-weight: 700; }
+  .quote mark { border-radius: .45cqw; padding: .02em .24em; background: #a6e8d3; color: #144337; }
+  .quote .missing { display: inline-block; width: 2.2em; text-align: center; background: #fee0a9; color: #624716; }
+  .source-date { margin-top: 2.5cqw; color: #2f5066; font-size: 3.55cqw; font-weight: 700; line-height: 1.14; }
+  .flight .question-box { margin-top: 0; }
+  .outcome { margin-top: 3cqw; padding: 3.25cqw 4cqw; border-color: #967846; }
+  .outcome h2 { color: var(--amber); font-size: 6cqw; }
+  .outcome p { margin-top: 1.5cqw; color: var(--muted); font-size: 4.8cqw; font-weight: 700; }
+  .closing { position: absolute; inset: 15cqw 0 auto; }
+  .closing h2 { font-size: 9.5cqw; }
+  .closing .disclaimer { margin-top: 4cqw; padding-top: 3cqw; border-top: 1px solid var(--rule); font-size: 5.2cqw; color: var(--muted); }
+  #caption {
+    position: absolute;
+    inset: auto 8.8cqw 10.9cqw;
+    margin: 0;
+    min-height: 12.5cqw;
+    padding: 1.4cqw 2.55cqw;
+    align-content: center;
+    border: 1px solid #42617c;
+    border-radius: 1.6cqw;
+    background: #06101f;
+    color: #fff;
+    white-space: pre-line;
+    font-size: 4.25cqw;
+    font-weight: 700;
+    line-height: 1.125;
+    letter-spacing: -.018em;
+  }
+</style>
+<main id="stage" aria-label="RegulaRAG Indonesia video">
+    <section class="scene">
+      <h1>RegulaRAG <span>Indonesia</span></h1>
+      <div class="question-box card">
+        <p class="kicker">Translated demo question</p>
+        <p class="question">__BREACH_QUESTION__</p>
+      </div>
+      <div class="intro-trace" aria-hidden="true"></div>
+    </section>
+    <section class="scene" hidden>
+      <p class="kicker">Local document collection</p>
+      <h2>From PDF to passages</h2>
+      <div class="split">
+        <div>
+          <div class="paper" aria-hidden="true"><div class="lines"><i></i><i></i><i></i><i></i><i></i></div></div>
+          <span class="paper-label">Official PDF</span>
+        </div>
+        <div class="fragments reveal" data-from="2">
+          <div class="fragment card lines" aria-hidden="true"><i></i><i></i></div>
+          <div class="passage card">
+            <p class="kicker">Extracted passage</p>
+            <strong>Law No. 27 of 2022</strong>
+            <span class="page">PDF page __PAGE__</span>
+          </div>
+          <div class="fragment card lines" aria-hidden="true"><i></i><i></i></div>
+        </div>
+      </div>
+    </section>
+    <section class="scene" hidden>
+      <p class="kicker">Optional hybrid mode</p>
+      <h2>Two search paths</h2>
+      <div class="rankings">
+        <div class="rank card reveal lift" data-from="0">
+          <h3>Keyword search</h3>
+          <p>BM25</p>
+          <div class="lines" aria-hidden="true"><i class="match"></i><i></i><i></i></div>
+        </div>
+        <div class="rank card reveal lift" data-from="1">
+          <h3>Meaning-based<br>search</h3>
+          <p>E5 + Qdrant Local</p>
+          <div class="lines" aria-hidden="true"><i></i><i class="match"></i><i></i></div>
+        </div>
+      </div>
+      <div class="reveal" data-from="2">
+        <div class="connect" aria-hidden="true"></div>
+        <p class="combine card">Combine rankings · RRF</p>
+      </div>
+    </section>
+    <section class="scene" hidden>
+      <p class="kicker">Evidence selection</p>
+      <h2>Qwen3 1.7B · Ollama</h2>
+      <div class="choice card reveal lift" data-from="0">
+        <p class="kicker">Selected excerpt ID</p>
+        <code>__CHUNK__</code>
+      </div>
+      <p class="validated reveal" data-from="1">✓ ID checked against retrieved passages</p>
+      <div class="citation card reveal lift" data-from="2">
+        <p>Law No. 27 of 2022</p>
+        <strong>Article __ARTICLE__ · PDF page __PAGE__</strong>
+      </div>
+    </section>
+    <section class="scene" hidden>
+      <div class="evidence">
+        <p class="law">Law No. 27 of 2022</p>
+        <h2>Article __ARTICLE__ <span>· PDF page __PAGE__</span></h2>
+        <div class="reveal" data-from="1">
+          <p class="translation">Unofficial English translation</p>
+          <p class="deadline"><strong>3 × 24</strong> hours</p>
+        </div>
+        <div class="compare reveal lift" data-from="2">
+          <div>
+            <p class="compare-label">Source PDF · verb present</p>
+            <p class="quote">must <mark>give</mark> written notice</p>
+          </div>
+          <div>
+            <p class="compare-label">Extracted text · verb missing</p>
+            <p class="quote">must <mark class="missing" aria-label="missing word">…</mark> written notice</p>
+          </div>
+        </div>
+        <p class="source-date">Demo source files last checked ·<br><time datetime="__SOURCE_DATE_ISO__">__SOURCE_DATE__</time></p>
+      </div>
+    </section>
+    <section class="scene" hidden>
+      <div class="flight reveal" data-out="end">
+        <div class="question-box card">
+          <p class="kicker">Translated demo question</p>
+          <p class="question">__FLIGHT_QUESTION__</p>
+        </div>
+        <div class="outcome card reveal lift" data-from="2">
+          <h2>Insufficient evidence</h2>
+          <p class="reveal" data-from="3">No citations</p>
+        </div>
+      </div>
+      <div class="closing reveal lift" data-from="end">
+        <p class="kicker">RegulaRAG Indonesia</p>
+        <h2>For document research only</h2>
+        <p class="disclaimer">Not legal advice</p>
+      </div>
+    </section>
+    <p id="caption" hidden></p>
+</main>
+<script>
+  const cuesByScene = __SCENES__;
+  const sections = [...document.querySelectorAll('.scene')];
+  const caption = document.querySelector('#caption');
+
+  const scenes = cuesByScene.map((scene, i) => {
+    const end = scene.cues.at(-1).to + .24;
+    const timeFor = key => key === 'end' ? end : scene.cues[Number(key)].from - .06;
+    const effects = [...sections[i].querySelectorAll('.reveal')].map(element => ({
+      element,
+      from: element.dataset.from ? timeFor(element.dataset.from) : scene.start - 1,
+      to: element.dataset.out ? timeFor(element.dataset.out) : Infinity,
+    }));
+    return { ...scene, effects };
+  });
+  const clamp = value => Math.max(0, Math.min(1, value));
+  const ease = value => 1 - (1 - clamp(value)) ** 3;
+  let previous = -1;
+
+  function renderAt(seconds) {
+    const index = Math.max(0, scenes.findLastIndex(scene => seconds >= scene.start));
+    const scene = scenes[index];
+    if (index !== previous) {
+      if (previous >= 0) sections[previous].hidden = true;
+      sections[index].hidden = false;
+      previous = index;
+    }
+    sections[index].style.setProperty('--phase', ease(seconds / 6));
+    for (const { element, from, to } of scene.effects) {
+      const opacity = ease((seconds - from) / .37) * (1 - ease((seconds - to) / .25));
+      element.style.setProperty('--reveal', opacity);
+      element.style.visibility = opacity > 0 ? 'visible' : 'hidden';
+    }
+    const cueIndex = scene.cues.findLastIndex(cue => cue.from <= seconds);
+    const cue = scene.cues[cueIndex];
+    const next = scene.cues[cueIndex + 1];
+    const shown = cue && seconds < (next && next.from - cue.to < .36 ? next.from : cue.to + .16);
+    const text = shown ? cue.text : '';
+    if (caption.textContent !== text) caption.textContent = text;
+    caption.hidden = !shown;
+  }
+
+  renderAt(0);
+</script>
+</html>

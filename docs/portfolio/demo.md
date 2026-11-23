@@ -1,99 +1,68 @@
-# RegulaRAG demo guide: 2–3 minutes
+# RegulaRAG system flow demo
 
-**Audience:** recruiters and AI engineers. **Narration:** English. **Application and source evidence:** Indonesian.  
-Supporting materials: [PDF carousel](regularag-linkedin.pdf), [editable PPTX](regularag-linkedin.pptx), [report](report.md), [LinkedIn caption](caption.md), and [demo record](demo_run.json).
+**2–3 minutes** with English narration and the original Indonesian UI and source evidence.
 
-The presentation has no recurring footers, page numbers, or display dates. Verification timestamps remain in the source records. English question renderings explain the recorded Indonesian demo; they do not establish that English queries were tested.
+[PDF carousel](regularag-linkedin.pdf) · [Editable PowerPoint](regularag-linkedin.pptx) · [Portfolio report](report.md) · [LinkedIn caption](caption.md) · [Evidence record](demo_run.json)
 
-## Preparation
+## Prepare the local index
 
-1. Follow the [README setup](../../README.md#setup-dari-nol-windows-powershell). Check that Ollama, `qwen3:1.7b-q4_K_M`, and the corpus are available.
-2. Start the UI from the repository root. It calls the pipeline directly, so a separate API process is unnecessary:
+Follow the Windows setup in the README on the Qdrant migration branch. Run these commands from the repository root before starting the UI. Close any reader of the same Qdrant Local directory before building.
 
-   ```powershell
-   .\.venv\Scripts\python.exe -m streamlit run app/ui.py --server.address 127.0.0.1 --browser.gatherUsageStats false
-   ```
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[ui,dense]"
+.\.venv\Scripts\python.exe -m ingestion.build_corpus
+.\.venv\Scripts\python.exe -m ingestion.build_vector_index
+.\.venv\Scripts\python.exe -m streamlit run app/ui.py --server.address 127.0.0.1 --browser.gatherUsageStats false
+```
 
-3. Open <http://127.0.0.1:8501>. Select BM25 using the interface label **“BM25 — pencocokan kata”**. Leave the document filter, **“Batasi dokumen (opsional)”**, empty. The live application displays corpus information and verification timestamps.
-4. Have the official local PDF `D:\regulaRAG\data\raw\UU_27_2022.pdf` ready at PDF page **19** in case the portal fails. Its printed page number also happens to be 19; other PDFs may differ.
-5. The recorded configuration used one 1.7B model, a 4096-token context, `num_gpu: null` for Ollama auto/offloading, and four documents containing 593 chunks. GPU use follows the user’s statement. No device, layer, latency, RAM, or VRAM benchmark was performed. The recorded environment used system Python 3.11 with available dependencies; use the README virtualenv for reproduction.
+Ollama must be running with `qwen3:1.7b-q4_K_M` available. The first index build needs the cached E5 model or a model download. The corpus can be searched with BM25 after ingestion, before building the vector snapshot. [README setup](../../README.md#setup-dari-nol-windows-powershell) · [Vector setup and recovery](../../README.md#mode-retrieval-opsional)
 
-## Script and screen sequence
+Open <http://127.0.0.1:8501>. Select **“Hybrid — gabungan keduanya”** under **Metode pencarian** to show both retrieval paths. Leave **Batasi dokumen (opsional)** empty. The app’s default setting is BM25. Run either Streamlit or FastAPI when both would read the same Qdrant directory. If you use FastAPI instead, check the `index_ready` and `dense_index_ready` fields in `GET /health`.
 
-| Target time | Action | Suggested narration |
+## Narrate the flow
+
+| Time | What to show | Narration |
 |---|---|---|
-| 00:00–00:20 | Show the title and corpus information. | “RegulaRAG searches PDP documents locally. Its corpus is limited and has recorded verification metadata. It is a document search aid, not legal advice.” |
-| 00:20–01:00 | Enter the first original prompt below. Click **“Cari dan jawab”** (Search and answer). | “The model selects source excerpts. The backend returns their original text and validates citations. This is extractive answering.” |
-| 01:00–01:45 | Expand the citation. Click **“Buka sumber resmi”** (Open official source), then inspect PDF page 19. | “The citation identifies the document, article, and page. We still compare the extracted quotation with the visual PDF.” |
-| 01:45–02:15 | Submit the flight-schedule prompt. | “The corpus contains no flight schedules. The system abstains and does not invent a citation.” |
-| 02:15–02:45 | Show N01 or the final carousel page. | “The system also rejected a question that had supporting evidence. Twelve of thirteen development cases passed AI review. Human validation is not available.” |
+| 00:00–00:30 | Carousel pages 2–3 and the retrieval selector | “Ingestion verifies official PDFs and keeps their text and page metadata. E5 embeds the passages during the build and Qdrant Local saves those vectors on disk. Hybrid search combines BM25 keyword matches with Qdrant’s semantic matches.” |
+| 00:30–01:15 | Submit the breach-notification question | “E5 embeds this question. Qdrant filters and ranks the stored vectors. RRF merges the results with BM25. Qwen3 selects excerpt IDs from the evidence, and the backend validates the citation.” |
+| 01:15–01:45 | Expand the citation and open the original source | “The citation leads to Article 46 and PDF page 19. Look for the word the extraction dropped.” |
+| 01:45–02:15 | Submit the flight-schedule question | “The evidence gate can return an abstention with no citations. A missing vector index produces a separate retrieval error.” |
+| 02:15–02:45 | Show the evaluation and limitations | “The migration matched the prior ranking order on the sample. AI review still found a wrong excerpt and a false abstention. Human validation is pending.” |
 
-These timings structure the narration; they are not measured application performance. Allow for actual response time. Identify saved screenshots as recorded demo evidence when using them as a fallback.
+## Scenario 1. Follow a hybrid answer
 
-## Scenario 1: successful answer
+**English translation:** What is the deadline for notifying data subjects after a personal data breach?
 
-**English rendering:** How long is the deadline for notifying data subjects after a personal data breach?
-
-Enter the original Indonesian prompt exactly:
+Use the original test prompt:
 
 > Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?
 
-Recorded result: an answer, `bm25` retrieval, and a citation matching `UU_27_2022:article:46`, PDF page 19. Preserve the exact displayed source text, including extraction defects.
+The migration’s Q02 hybrid smoke returned an excerpt with chunk ID `UU_27_2022:article:46`, Article 46, and PDF page 19. A separate Streamlit AppTest verified the same citation in hybrid mode. An offline hybrid retrieval check on the current checkout ranked the article first. The **3 × 24 hours** callout on the carousel is an unofficial translation of the excerpt. [Migration evaluation](../quality_acceptance.md#migrasi-qdrant-local) · [Demo evidence](demo_run.json)
 
-The carousel’s English callout, **“no later than 3 x 24 (three times twenty-four) hours,”** is an unofficial explanatory translation of the excerpt. It is not a verbatim English quotation from an official translation.
+![Archived BM25 answer screenshot from the original Indonesian UI](assets/demo-answer.jpg)
 
-![Actual UI answer, original Indonesian evidence](assets/demo-answer.jpg)
+## Scenario 2. Open the source
 
-## Scenario 2: inspect the citation against the source
+1. Expand the Article 46 citation. Check the document name, article, PDF page, and stored quotation.
+2. Click **“Buka sumber resmi”** to open the BPK detail page. If the portal opens, navigate to PDF page 19. The citation opens the detail page first.
+3. If the portal is unavailable, show the official local copy after comparing its SHA-256 against the manifest. The archived demo received “The service is unavailable” and used this fallback. [BPK detail page](https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022) · [Official PDF in the manifest](https://peraturan.bpk.go.id/Home/Download/224884/UU%20Nomor%2027%20Tahun%202022.pdf)
 
-1. Expand the citation identifying Law No. 27 of 2022, Article 46, PDF page 19. The live label uses the original Indonesian title.
-2. Inspect its recorded `verified` status, effective date, and original quotation.
-3. Click **“Buka sumber resmi”** (Open official source). It points to the [BPK detail page](https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022); it does not automatically open PDF page 19.
-4. When the portal is available, follow its official PDF link and navigate to page 19. The manifest’s PDF URL is <https://peraturan.bpk.go.id/Home/Download/224884/UU%20Nomor%2027%20Tahun%202022.pdf>.
-5. During the recorded demo, BPK returned **“The service is unavailable.”** Use the checksum-verified local copy and say: “The source portal is unavailable. This is an official local copy with a matching checksum.” Do not claim a fresh download or legal-status verification succeeded.
+The source PDF contains **“menyampaikan”** in Article 46(1). The retrieved text drops it. This is why the page-level citation remains useful even when text extraction is imperfect.
 
-The local PDF’s SHA-256 is:
+![Archived BM25 citation screenshot](assets/demo-citation.jpg)
 
-```text
-ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6
-```
+![Official local PDF page 19](assets/source-pdf-page-19.png)
 
-![Expanded citation in the actual Indonesian UI](assets/demo-citation.jpg)
+## Scenario 3. Show an abstention
 
-![Original official local PDF, page 19](assets/source-pdf-page-19.png)
-
-The visual PDF includes **“menyampaikan”** in paragraph (1), while the extracted text used by the application omits it. This demonstrates that a quotation can match the store and still differ from the rendered document. This inspection is AI review, not human validation. The [portal error screenshot](assets/source-unavailable.jpg) is preserved separately.
-
-The English carousel crops the source screenshots for readability and removes the metadata date row. These full original captures remain available here for inspection.
-
-## Scenario 3: unsupported question
-
-**English rendering:** What are tomorrow’s flights from Jakarta to Tokyo?
-
-Enter the original prompt:
+**English translation:** What are tomorrow’s flights from Jakarta to Tokyo?
 
 > Apa jadwal penerbangan Jakarta Tokyo besok?
 
-Recorded result: the system reports insufficient corpus evidence and shows no citations. This tests a clearly unrelated topic. It does not demonstrate that every unsupported legal question will be detected.
+The current hybrid check returned `no_evidence` with no citations. The hybrid smoke test also recorded citation-free abstentions for Q45 and Q46. If vector mode fails because the snapshot is absent, out of date, or locked, close its reader and rebuild the index or select BM25. [Evidence record](demo_run.json)
 
-![Actual abstention in the Indonesian UI](assets/demo-abstention.jpg)
+![Archived BM25 abstention screenshot from the original Indonesian UI](assets/demo-abstention.jpg)
 
-## Closing: a failure that remains visible
+## Close with the limits
 
-**English rendering:** What rights does Article 7 give data subjects?
-
-Original N01 prompt:
-
-> Apa hak subjek data dalam Pasal 7?
-
-The recorded evaluation found a false abstention even though the corpus contains Article 7. See the [item review](../../evaluation/results/quality_final_review.jsonl). N01 was not rerun for the screenshot demo or this translation. Present it as a historical finding. If a future run succeeds, retain the earlier record and report the new result separately.
-
-## Before presenting
-
-- Rehearse the three scenarios using the configuration you will show. Separate new results from archived evidence.
-- Check the citation and PDF page. Describe portal availability accurately.
-- Verification dates belong to source records; presentation revisions do not update legal verification.
-- Keep **“AI review, no human validation yet”** visible on the evaluation page.
-- Describe **12/13** as development review after fixes from earlier CPU runs, without implying a new GPU evaluation or general accuracy estimate.
-- Keep English translations distinct from original Indonesian prompts, interface output, and legal wording.
-- Exclude private questions, tokens, and sensitive data from any new screenshots.
+The migration’s top-ten ordering matched the baseline for 50 benchmark questions across five configurations. The answer smoke test still found a wrong article (Q06) and a false abstention on a question about access and copies (Q08). Both cases had the same candidate ordering in the before/after replay. Say **“AI review, human validation pending.”** The prototype is a document search aid. [Quality review](../quality_acceptance.md#migrasi-qdrant-local)

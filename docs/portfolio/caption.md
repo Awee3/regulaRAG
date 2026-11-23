@@ -1,17 +1,13 @@
 # LinkedIn caption
 
-I’m building RegulaRAG Indonesia, my first RAG project, to explore official Indonesian personal data protection documents locally.
+RegulaRAG Indonesia is my first local RAG project. Ask a question in Indonesian and trace the answer to the official page.
 
-The engineering question: how can an answer make its evidence easy to inspect when the corpus contains both legislation and court rulings?
+The carousel walks through indexing, retrieval, and citation. E5 embeds passages during indexing and Qdrant Local stores the vectors. Hybrid search combines semantic rankings with BM25 keyword matches. Qwen3 1.7B selects source excerpts or abstains.
 
-The pipeline extracts PDF chunks with page metadata, offers four retrieval modes, and uses BM25 for the demo. A single Qwen3 1.7B model selects excerpt IDs. The backend returns the original source text and validates citations.
+The migration preserved all 250 top-ten rankings across 50 questions and five configurations. On 15 answerable holdout questions, average Recall@5 was 65.0% for BM25 and 46.7% for hybrid with reranking. BM25 remains the default.
 
-This carousel shows a successful answer, source inspection, and abstention on an unsupported question. It also includes a failure: the system once rejected a question that had supporting evidence.
+In the 10-prompt hybrid smoke test, seven prompts returned excerpts and three abstained. AI review found one wrong excerpt and one false abstention. Human validation is pending.
 
-After development fixes, 12 of 13 cases passed AI review. These were earlier CPU runs, with no independent human validation or general accuracy estimate. The corpus remains limited, and PDF text extraction can lose words.
+Read the migration evaluation on GitHub https://github.com/Awee3/regulaRAG/blob/codex/migrasi-qdrant/docs/quality_acceptance.md#migrasi-qdrant-local
 
-My main lesson: an authentic quotation still needs a relevance check against the original PDF. Original Indonesian evidence appears alongside English explanations. This is a document search aid, not legal advice.
-
-Code and documentation: https://github.com/Awee3/regulaRAG
-
-#RAG #AIEngineering #Portfolio
+#RAG #Qdrant #AIEngineering

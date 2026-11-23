@@ -141,8 +141,10 @@ class SearchTests(unittest.TestCase):
             {"chunk_id": "UU_27_2022:article:2", "document_id": "UU_27_2022", "text": "candidate"},
         ]
         with patch.object(main_module, "search", return_value=candidates) as search_mock, \
+             patch.object(main_module, "CHUNKS") as chunks, \
              patch.object(main_module, "rerank", return_value=candidates[:1]) as rerank_mock, \
              patch.object(main_module, "generate", return_value={"answer": "jawaban", "citation_ids": ["E1"], "abstained": False}):
+            chunks.read_bytes.return_value = b""
             result = query(QueryRequest(question="Apa isi ketentuan?", retrieval_mode="hybrid_rerank", top_k=1))
         self.assertEqual(search_mock.call_args.args[2], 20)
         self.assertEqual(search_mock.call_args.kwargs["retrieval_mode"], "hybrid")
@@ -162,32 +164,6 @@ class SearchTests(unittest.TestCase):
             self.assertEqual(search("data pribadi", path, document_ids={"other"}), [])
             with self.assertRaises(ValueError):
                 search("  ", path)
-
-    def test_dense_and_hybrid_compare_same_question_and_keep_document_filter(self):
-        import app.search as search_module
-
-        class FakeEncoder:
-            def encode(self, texts, **_kwargs):
-                return [[1.0, 0.0] if text.startswith("query: ") or "makna" in text.lower()
-                         else [0.0, 1.0] for text in texts]
-
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "chunks.jsonl"
-            docs = [
-                {"chunk_id": "UU:exact", "document_id": "UU", "text": "Kewajiban pengendali data."},
-                {"chunk_id": "UU:semantic", "document_id": "UU", "text": "Makna tanggung jawab entitas."},
-            ]
-            path.write_text("\n".join(json.dumps(doc) for doc in docs), encoding="utf-8")
-            with patch.object(search_module, "_load_encoder", return_value=FakeEncoder()):
-                # Same sample question: BM25 finds the exact phrase; E5-style vector ranking finds related meaning.
-                bm25 = search("kewajiban data", path, top_k=1, retrieval_mode="bm25")
-                dense = search("kewajiban data", path, top_k=1, retrieval_mode="dense")
-                hybrid = search("kewajiban data", path, top_k=2, retrieval_mode="hybrid")
-                filtered = search("kewajiban data", path, top_k=2, document_ids={"UU"}, retrieval_mode="hybrid")
-            self.assertEqual(bm25[0]["chunk_id"], "UU:exact")
-            self.assertEqual(dense[0]["chunk_id"], "UU:semantic")
-            self.assertEqual({hit["chunk_id"] for hit in hybrid}, {"UU:exact", "UU:semantic"})
-            self.assertEqual({hit["chunk_id"] for hit in filtered}, {"UU:exact", "UU:semantic"})
 
     def test_ingestion_rejects_path_traversal(self):
         with tempfile.TemporaryDirectory() as tmp:

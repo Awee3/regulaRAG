@@ -1,89 +1,193 @@
 {
-  "recorded_at_utc": "2026-11-17T11:17:04.346890+00:00",
-  "demo_date_local": "2026-11-17",
-  "timezone": "Asia/Jakarta",
-  "interface": "Streamlit UI at http://127.0.0.1:8501",
-  "observation_method": "Actual UI interactions and screenshots; no replay or mocked UI",
-  "config": {
-    "retrieval_mode": "bm25",
-    "top_k": 5,
-    "document_ids": null,
-    "model": "qwen3:1.7b-q4_K_M",
-    "num_ctx": 4096,
-    "num_gpu": null,
-    "llm_device_note": "GPU per user statement; Ollama automatic offloading, not measured in this demo"
+  "commit": "02be4978b9654acc205a7ab4f3657142ac7da3f2",
+  "branch": "codex/migrasi-qdrant",
+  "migration_artifacts": "data/processed/migrasi-qdrant-20261118-114459",
+  "snapshot": {
+    "id": "snapshot-0f13fa37f58b40809b870b10a465ed5b",
+    "qdrant_client": "1.17.1",
+    "points": 593,
+    "vector_dimensions": 768,
+    "distance": "Cosine",
+    "corpus_sha256": "b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5"
   },
-  "corpus": {
-    "active_documents": 4,
-    "chunks": 593,
-    "sha256": "b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5",
-    "latest_artifact_verification_utc": "2026-11-16T08:43:52Z",
-    "legal_status_reverified_in_this_session": false
-  },
-  "scenarios": [
-    {
-      "scenario": "answer",
-      "question": "Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?",
-      "observed": "Answer shown, citation Pasal 46, PDF page 19",
-      "chunk_id_matched_in_store": "UU_27_2022:article:46",
-      "screenshot": "assets/demo-answer.jpg"
+  "ranking_comparison": {
+    "top_k": 10,
+    "questions": 50,
+    "configurations": [
+      "bm25",
+      "dense",
+      "hybrid_baseline",
+      "hybrid_tuned",
+      "hybrid_rerank"
+    ],
+    "split_counts": {
+      "dev": 29,
+      "holdout": 21
     },
-    {
-      "scenario": "citation",
-      "observed": "Citation expanded; official BPK destination opened and returned The service is unavailable",
-      "official_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
-      "source_available_online": false,
-      "fallback": "Official local PDF with matching manifest SHA-256, page 19 rendered and inspected by AI",
-      "source_sha256": "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6",
-      "screenshot": "assets/demo-citation.jpg",
-      "pdf_page_image": "assets/source-pdf-page-19.png",
-      "unavailable_screenshot": "assets/source-unavailable.jpg",
-      "extraction_issue": "The rendered PDF includes menyampaikan; the extracted text shown by the UI omits it"
-    },
-    {
-      "scenario": "abstention",
-      "question": "Apa jadwal penerbangan Jakarta Tokyo besok?",
-      "observed": "Abstention shown; no citations",
-      "screenshot": "assets/demo-abstention.jpg"
+    "all_orderings_equal": true,
+    "matched_rankings": 250,
+    "answerable_holdout": {
+      "questions": 15,
+      "average_recall_at_5": {
+        "bm25": 0.65,
+        "hybrid_rerank": 0.4666666666666667
+      }
     }
-  ],
-  "historical_quality_review": {
-    "file": "evaluation/results/quality_final_review.jsonl",
-    "summary_file": "evaluation/results/quality_final_summary.json",
-    "review_status": "ai_reviewed",
-    "passed": 12,
-    "cases": 13,
-    "historical_runtime": "CPU",
-    "independent_test_set": false,
-    "human_validation": "not_available",
-    "N01_rerun_for_this_demo": false
   },
-  "performance_benchmark_performed": false,
+  "recorded_hybrid_smoke": {
+    "questions": 10,
+    "answers": 7,
+    "abstentions": 3,
+    "unsupported_abstentions": [
+      "Q45",
+      "Q46"
+    ],
+    "human_validation": "pending",
+    "review_method": "AI",
+    "citation": {
+      "chunk_id": "UU_27_2022:article:46",
+      "document_id": "UU_27_2022",
+      "article": "Pasal 46",
+      "paragraph": null,
+      "page_start": 19,
+      "page_end": 19,
+      "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+      "status": "verified",
+      "effective_from": "2022-10-17",
+      "source_kind": "regulation_full_text",
+      "section_type": "batang_tubuh",
+      "document_title": "Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+      "quote": "Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\nPengendali Data Pribadi wajib\npemberitahuan secara tertulis paling lambat 3 x 24\n(tiga kali dua puluh empat) jam kepada:\na. Subjek Data Pribadi; dan\nb. lembaga.\n(2) Pemberitahuan tertulis sebagaimana dimaksud pada\nayat (1) minimal memuat:\nData Pribadi yang terungkap;\nkapan dan bagaimana Data Pribadi terungkap; dan\nupaya penanganan dan pemulihan atas\nterungkapnya Data Pribadi oleh Pengendali Data\nPribadi.\n(3) Dalam hal tertentu, Pengendali Data Pribadi wajib\nmemberitahukan kepada masyarakat mengenai\nkegagalan Pelindungan Data Pribadi."
+    },
+    "wrong_excerpt": "Q06",
+    "false_abstention": "Q08"
+  },
+  "fresh_checks": {
+    "retrieval": {
+      "question": "Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?",
+      "retrieval_mode": "hybrid",
+      "source_filters": "verified active documents and normative judgment sections",
+      "top_5": [
+        "UU_27_2022:article:46",
+        "UU_27_2022:explanation:article:46",
+        "UU_27_2022:article:32",
+        "UU_27_2022:article:16",
+        "UU_27_2022:article:21"
+      ]
+    },
+    "abstention": {
+      "question": "Apa jadwal penerbangan Jakarta Tokyo besok?",
+      "retrieval_mode": "hybrid",
+      "reason": "no_evidence",
+      "abstained": true,
+      "citations": []
+    },
+    "test_suite": {
+      "passed": 49,
+      "ruff": "passed"
+    }
+  },
+  "source_pdf_sha256": "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6",
+  "corpus_scope": {
+    "eligible_pdf_count": 4,
+    "last_source_file_verification_utc": "2026-11-16T08:43:52Z"
+  },
+  "carousel_abstention": {
+    "retrieval_mode": "bm25",
+    "asset": "assets/demo-abstention-crop.jpg",
+    "original": "assets/demo-abstention.jpg"
+  },
+  "public_evaluation_url": "https://github.com/Awee3/regulaRAG/blob/codex/migrasi-qdrant/docs/quality_acceptance.md#migrasi-qdrant-local",
+  "archived_bm25_demo": {
+    "recorded_at_utc": "2026-11-17T11:17:04.346890+00:00",
+    "config": {
+      "retrieval_mode": "bm25",
+      "top_k": 5,
+      "document_ids": null,
+      "model": "qwen3:1.7b-q4_K_M",
+      "num_ctx": 4096,
+      "num_gpu": null,
+      "llm_device_note": "GPU per user statement; Ollama automatic offloading, not measured in this demo"
+    },
+    "corpus": {
+      "active_documents": 4,
+      "chunks": 593,
+      "sha256": "b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5",
+      "latest_artifact_verification_utc": "2026-11-16T08:43:52Z",
+      "legal_status_reverified_in_this_session": false
+    },
+    "scenarios": [
+      {
+        "scenario": "answer",
+        "question": "Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?",
+        "observed": "Answer shown, citation Pasal 46, PDF page 19",
+        "chunk_id_matched_in_store": "UU_27_2022:article:46",
+        "screenshot": "assets/demo-answer.jpg"
+      },
+      {
+        "scenario": "citation",
+        "observed": "Citation expanded; official BPK destination opened and returned The service is unavailable",
+        "official_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022",
+        "source_available_online": false,
+        "fallback": "Official local PDF with matching manifest SHA-256, page 19 rendered and inspected by AI",
+        "source_sha256": "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6",
+        "screenshot": "assets/demo-citation.jpg",
+        "pdf_page_image": "assets/source-pdf-page-19.png",
+        "unavailable_screenshot": "assets/source-unavailable.jpg",
+        "extraction_issue": "The rendered PDF includes menyampaikan; the extracted text shown by the UI omits it"
+      },
+      {
+        "scenario": "abstention",
+        "question": "Apa jadwal penerbangan Jakarta Tokyo besok?",
+        "observed": "Abstention shown; no citations",
+        "screenshot": "assets/demo-abstention.jpg"
+      }
+    ],
+    "historical_quality_review": {
+      "file": "evaluation/results/quality_final_review.jsonl",
+      "summary_file": "evaluation/results/quality_final_summary.json",
+      "review_status": "ai_reviewed",
+      "passed": 12,
+      "cases": 13,
+      "historical_runtime": "CPU",
+      "independent_test_set": false,
+      "human_validation": "not_available",
+      "N01_rerun_for_this_demo": false
+    }
+  },
+  "presentation_language": "en",
+  "original_evidence_language": "id",
+  "translation_note": "The English slides preserve the original Indonesian legal evidence and the Streamlit BM25 abstention screenshot. The recorded answer and fresh checks above use hybrid retrieval.",
+  "cover_art": {
+    "asset": "assets/carousel-cover-art.png",
+    "generator": "Built-in ImageGen",
+    "role": "Conceptual illustration. The creation prompt is in the cover speaker notes."
+  },
   "deliverables": [
     {
       "file": "report.md",
-      "bytes": 7858,
-      "sha256": "656776de68aefa49c1a1bf61ad9fae8fffe74d13dc5e4bd3a68672078cdfff82"
+      "bytes": 7727,
+      "sha256": "f8de9e9481bc5a30138dbfe46f762fd1882e2d5c207e797e51ba389379edf8cd"
     },
     {
       "file": "demo.md",
-      "bytes": 7518,
-      "sha256": "2b50487e39238fd31099ee09a97bc32884e01d05fac699333ad1ca406ff7a850"
+      "bytes": 5721,
+      "sha256": "a0df122a123fd53e8e8d0b983676120f87f967d1c9e37b933bcac8bb11938d0e"
     },
     {
       "file": "caption.md",
-      "bytes": 1248,
-      "sha256": "a06adebf0c2567f1030af513ba42b90948b611b9743d2484846904072ab7f055"
+      "bytes": 982,
+      "sha256": "db5cdca0da83762f68e6c0bfda38ee79f3ef17ea8ffe440a624bbfb46d54e671"
     },
     {
       "file": "regularag-linkedin.pptx",
-      "bytes": 3059125,
-      "sha256": "092a3a0ce07b20ea8e5f3563ebf11f32578a9c4a2c624514e6b7a8e0734a8525"
+      "bytes": 2974878,
+      "sha256": "cdeb3608de5855d3bcf0faf65cd4c52f9a31e703321799265e989959c8f2bd2b"
     },
     {
       "file": "regularag-linkedin.pdf",
-      "bytes": 3239140,
-      "sha256": "30521d3792f569df9a4a9b7126a76cc26104a1fea47690ca0a96852a1ebbc1dc"
+      "bytes": 2703140,
+      "sha256": "85035d7e8a1eecbd40c2b61de2020332e492de609031afdec2f34ff3fcbf7b38"
     }
   ],
   "artifact_checks": {
@@ -92,31 +196,23 @@
     "native_editable_pptx_text": true,
     "pptx_font": "Arial",
     "pdf_searchable_text": true,
-    "pdf_source_and_repository_links": true,
+    "pdf_source_and_evaluation_links": true,
     "pdf_embedded_slide_pixels_match": true,
     "poppler_render_mean_pixel_difference_per_page": [
-      4.032563,
-      1.537509,
-      2.362466,
-      3.86379,
-      3.49466,
-      1.85867,
-      2.304145,
-      1.848566
+      4.033471,
+      2.418623,
+      2.303147,
+      2.631816,
+      3.696512,
+      1.809395,
+      2.226459,
+      2.215619
     ],
     "markdown_local_links": "passed",
     "review_kind": "AI visual and automated checks, not human validation",
     "powerpoint_desktop_opened": false,
     "pdf_export_method": "Exact session slide renders with searchable native slide copy and URI annotations",
     "recurring_footer_removed": true,
-    "authored_display_dates_removed": true
-  },
-  "presentation_language": "en",
-  "original_evidence_language": "id",
-  "translation_note": "All authored slide copy, notes, alt text, and portfolio documents are English. Original Indonesian prompts, screenshots, and legal evidence remain intact. English renderings are explanatory translations, not newly tested English queries.",
-  "cover_art": {
-    "asset": "assets/carousel-cover-art.png",
-    "generator": "Built-in ImageGen",
-    "role": "Conceptual illustration. The creation prompt is in the cover speaker notes."
+    "display_date_on_source_files_page_only": true
   }
 }
