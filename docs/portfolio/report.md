@@ -1,70 +1,81 @@
-# RegulaRAG Indonesia: local RAG with inspectable evidence
+# RegulaRAG Indonesia
 
-**Repository:** <https://github.com/Awee3/regulaRAG>  
-**Status:** local prototype evaluated during development. This is a document search aid, not legal advice.
+A local retrieval-augmented generation project for Indonesian personal data protection documents. For document research only. [Reviewed Qdrant Local revision (`02be497`)](https://github.com/Awee3/regulaRAG/commit/02be4978b9654acc205a7ab4f3657142ac7da3f2)
 
-## Problem and purpose
+## Problem and scope
 
-Finding information in Indonesia’s personal data protection (PDP) documents requires more than matching words in a PDF. Readers need the source document, article, conditions, and relationship to court rulings. A statement in a party’s argument may not represent the court’s decision. A fluent answer can hide that distinction.
+RegulaRAG helps developers, privacy practitioners, and students find the article or ruling behind an answer. A party’s argument can look like a court decision when both appear in the same PDF. The application preserves source locations and selects evidence from eligible documents so readers can inspect that distinction themselves.
 
-RegulaRAG lets readers ask questions in Indonesian and inspect relevant source excerpts. This portfolio demonstrates a local AI pipeline with verifiable citations and abstention when evidence is insufficient. As a first RAG project, it also provides a practical way to understand and test each stage. The portfolio narrative is in English; original Indonesian screenshots, prompts, and legal text remain unchanged evidence. English renderings are explanatory translations, not outputs from a new English-language benchmark.
+The corpus contains **four official PDFs** and **593 chunks**: Law No. 27 of 2022 and Constitutional Court Rulings 151/PUU-XXII/2024, 135/PUU-XXIII/2025, and 133/PUU-XXIV/2026. This is a limited collection. The manifest records official URLs, document eligibility, checksums, and per-document verification timestamps. The latest recorded artifact verification is **2026-11-16 at 08:43:52 UTC**. Legal status is maintained in the manifest. [Source register](../data_sources.md)
 
-## Corpus and provenance
-
-The active corpus contains four official PDFs: Law No. 27 of 2022, Constitutional Court Rulings 151/PUU-XXII/2024, 135/PUU-XXIII/2025, and 133/PUU-XXIV/2026. The index used for this portfolio contains **593 chunks**. Candidates without verified source files cannot support default answers. The corpus covers only part of Indonesia’s PDP documents.
-
-The manifest records official URLs, source types, local files, SHA-256 checksums, and verification timestamps. Dates differ by document; the latest artifact verification record is **2026-11-16, 08:43:52 UTC**. This does not mean every document’s legal status was checked that day. Preparing these materials verified the local copy without automatically updating legal status. See the [source register](../data_sources.md).
-
-## Architecture and data flow
+## 1. Build the corpus and index
 
 ```mermaid
 flowchart TD
-    A[Official PDFs and manifest] --> B[Checksum validation]
-    B --> C[Page extraction and legal structure parsing]
-    C --> D[Text chunks and source metadata]
-    D --> E[BM25 / dense / hybrid RRF]
-    E --> F[Optional reranker]
-    F --> G[Normative evidence selection]
-    G --> H[Qwen3 1.7B selects excerpt IDs]
-    H --> I[Backend returns original text and validates citations]
-    I --> J[Answer with sources or abstention]
-    J --> K[Streamlit / FastAPI]
+    A["Official PDFs and verified manifest"] --> B["Validate checksums and parse pages"]
+    B --> C["chunks.jsonl: text, article, page and source URL"]
+    C --> D["E5 embeds each passage during index build"]
+    D --> E["Qdrant Local: persisted cosine vectors and chunk IDs"]
 ```
 
-Ingestion checks each file against the manifest, then extracts PDF pages. The parser preserves article and section boundaries where the format permits. Chunks retain document identity, text, pages, and available structural metadata. Missing values are not guessed.
+The parser preserves article and section boundaries where the source format permits. The JSONL corpus remains the source of text and citation metadata. The optional vector builder stores one multilingual E5 embedding per chunk using a stable point ID. The current collection has **593 vectors with 768 dimensions each**. Qdrant stores the vector with the chunk ID and filter metadata, including document, source kind, and section type.
 
-Retrieval finds candidates. Evidence selection favors normative sources and can add related operative court orders using static manifest relationships. Qwen3 selects from the supplied excerpt IDs. The backend converts those IDs into original text and citations. This is **extractive answering**: the model does not write a free-form legal summary. FastAPI and Streamlit call the same query function.
+The builder verifies the snapshot before publishing it through `active.txt`. The snapshot records the corpus checksum and embedding identity, including model revision and normalization. Qdrant Local runs inside the Python process and persists to `data/processed/qdrant/`. Reopening a compatible snapshot reuses the passage vectors. [Index builder](../../ingestion/build_vector_index.py) · [Snapshot code](../../app/vector_index.py)
 
-## Technical choices
+## 2. Route a question through retrieval
 
-Four retrieval modes are available: BM25, dense, hybrid RRF, and hybrid with a reranker. BM25 is the demo default because it works with core dependencies and earlier retrieval experiments supported that choice on this project’s sample. Those results are historical. Default selection also considered holdout results, so it still needs confirmation on a new independent test set. BM25 is not assumed to win universally.
+```mermaid
+flowchart TD
+    A["Question from Streamlit or FastAPI"] --> B["Select verified documents and eligible source sections"]
+    B --> C["BM25 ranks source text by terms"]
+    B --> D["E5 embeds the question"]
+    D --> E["Qdrant ranks filtered vectors by cosine similarity"]
+    C -->|BM25 mode| G["Candidate chunks"]
+    E -->|Dense mode| G
+    C -->|Hybrid mode| F["RRF combines the two rankings"]
+    E -->|Hybrid mode| F
+    F --> G
+    F --> R["Optional CPU reranker"]
+    R --> G
+    G --> H["Resolve source text and include related rulings"]
+    H --> I{"Evidence passes the topic and source checks?"}
+    I -->|Insufficient| J["Abstain"]
+    I -->|Evidence available| K["Qwen3 selects excerpt IDs"]
+    K -->|Abstains or selects no usable excerpt| J
+    K --> L["Backend validates IDs and returns cited excerpts"]
+```
 
-Dense retrieval uses multilingual E5 embeddings. Hybrid retrieval combines rankings with Reciprocal Rank Fusion. The optional reranker scores candidates again. Embeddings and the reranker can run on CPU. The single LLM is **Qwen3 1.7B Q4_K_M** through Ollama, with a 4096-token context and one generation at a time. GPU use follows the user’s statement and Ollama’s automatic offloading setting. These materials do not establish full GPU offloading or a layer count.
+BM25 is the default and works with the base installation. Dense search encodes the question and searches the persisted vectors. Qdrant applies the requested document and answer-path section filters before selecting the top results. Hybrid mode combines positions with reciprocal rank fusion (RRF). Hybrid with reranking adds the optional CPU ONNX stage to re-score the fused candidates.
 
-Citation checks validate IDs and text provenance. Abstention handles insufficient evidence, certain unsupported requests, and outputs outside the expected contract. The application does not store ordinary user questions by default. Installation, model download, and PDF recovery need internet access; queries use the local runtime.
+The backend maps dense hits to the same corpus snapshot for their original text, pages, and source URLs. Streamlit and FastAPI call the same query function. Qdrant Local uses one reader process per directory. Close that reader before rebuilding or running another reader. A missing, stale, or locked index can make vector retrieval unavailable. The API exposes `dense_index_ready` separately from corpus readiness and returns an explicit 503 for an index failure. [Retrieval code](../../app/search.py) · [Setup and recovery](../../README.md#mode-retrieval-opsional)
 
-## Evaluation: separate kinds of evidence
+## 3. Select evidence and return the citation
 
-| Category | Evidence and interpretation |
+The answer pipeline includes eligible operative court rulings using the manifest’s links and then checks the evidence against the question. If the evidence gate finds nothing to use, the system abstains before calling the model. Otherwise, the single local model, **Qwen3 1.7B Q4_K_M**, selects excerpt IDs through Ollama. The backend validates those IDs and returns stored source text with the citation. The record contains the document, article or section, PDF page, and official link.
+
+The recorded hybrid UI smoke test returned Article 46 of Law No. 27 of 2022 on PDF page 19. The same breach-notification case appears as Q02 in the migration’s answer smoke test. This checkout’s hybrid retrieval placed `UU_27_2022:article:46` first for that question with the answer path’s document and section filters. The demo guide separates these results from the earlier BM25 screenshots. [Demo guide](demo.md) · [Evidence record](demo_run.json)
+
+The rendered PDF includes **“menyampaikan”** in paragraph (1). The stored extraction drops that word. Checking the original document exposes the difference even when the citation matches the stored chunk.
+
+## Evaluation and remaining limits
+
+| Check | Reported result |
 |---|---|
-| Automated tests | The acceptance report records 43 passing unit/regression tests, Ruff, and a compile check from an earlier run. These verify technical behavior on the tested cases. |
-| AI review | Codex reviewed 13 development cases against source evidence. **12/13 passed**, with one false abstention. The result includes repaired cases and individual rechecks. |
-| Human validation | Not available. No legal expert approval or general accuracy estimate is claimed. |
+| Retrieval comparison | Top-ten order matched before and after migration for all **50 questions** across **five configurations**. The corpus, split, and candidate depth were held fixed. |
+| Hybrid answer smoke | **10** prompts completed without runtime errors. Seven returned excerpts and three abstained. Two of the abstentions were for unsupported questions. |
+| Technical verification | The current checkout passed **49 tests**, including seven Qdrant Local integration tests. Ruff passed as well. |
+| Review | AI review identified a wrong source selection and a false abstention. Independent human validation is pending. |
 
-The quality runs used an earlier CPU configuration. They are not a new GPU evaluation. The small sample, case selection, and reuse of failures for development limit generalization. An authentic citation also does not guarantee relevance to a new question.
+The parity comparison measures rankings on this sample. The earlier CPU development review reported **12/13** cases passing with BM25. BM25 stays the default. [Migration results](../quality_acceptance.md#migrasi-qdrant-local) · [Acceptance details](../acceptance.md)
 
-The figures come from the [active quality report](../quality_acceptance.md), [JSON summary](../../evaluation/results/quality_final_summary.json), and [item reviews](../../evaluation/results/quality_final_review.jsonl). Four-mode experiments in the [retrieval report](../evaluation_report.md) remain **archived**, tied to their original corpus and configuration. Results across changed pipelines and samples should not be combined into one accuracy improvement chart.
+### Fixes from the earlier development review
 
-## Lessons from two failures
+- **Sanctions from the wrong paragraph, Q06.** The original answer used figures from another paragraph. Excerpt selection now returns the source wording and conditions. A BM25 recheck included Article 67(2), alongside other paragraphs. The latest hybrid smoke still showed that the model can pick the wrong excerpt.
+- **A party’s argument treated as authority, Q04.** The earlier answer relied on an argument page. The answer path now filters out party arguments and includes related operative rulings through manifest links. The BM25 recheck cited the operative part of Ruling 151 on PDF page 159. [Archived review](../answer_review.md) · [Development recheck](../quality_acceptance.md#hasil-aktual)
 
-**Numbers from the wrong paragraph.** In the initial Q06 review, the model used figures from a different paragraph even though its citations contained authentic text. The current answer path selects excerpts so that the backend returns source wording and conditions. Development rechecks found the appropriate article excerpt, although the answer can still include additional paragraphs. Relevance selection remains important.
+### Findings from the Qdrant migration
 
-**A party’s argument treated as authority.** The initial Q04 answer relied on an argument page and mixed an earlier reading with the operative ruling. The correction filters source sections and includes related operative orders using recorded relationships. The final Q04 review used PDF page 159. The [archived initial review](../answer_review.md) preserves the failure. These are case-level changes; they do not establish that one intervention caused the entire aggregate result.
+- **Wrong excerpt, Q06.** The model selected Article 68 for a disclosure sanctions question even though the supplied evidence included Article 67 and Article 65.
+- **False abstention, Q08.** The topic guard rejected a question about access and copies even with Article 7 evidence. The recorded ranking replay produced the same candidate order before and after migration for both cases.
 
-## Demo and remaining limitations
-
-The recorded UI demo used BM25 without document filters. The breach-notification question returned an Article 46 excerpt and a citation to PDF page 19. A flight-schedule question produced abstention without citations. Actual screenshots, configuration, and observations are in the [demo guide](demo.md) and [demo record](demo_run.json). Translating this portfolio does not rerun those questions.
-
-During that demo, the BPK destination returned “The service is unavailable.” Source inspection therefore used an official local PDF with a matching checksum. Its page 19 visibly contains **“menyampaikan”**, a word missing from the extracted text shown in the UI. The original evidence preserves this defect. The visual inspection was performed by AI.
-
-N01, rendered in English as “What rights does Article 7 give data subjects?”, was a **false abstention**: supporting text existed, but the system refused to answer. It was not rerun for these materials. Conservative guards may reject valid paraphrases. Other limits include incomplete coverage, truncated context, static relationships, and missed evidence across documents. Further evaluation should use new questions and report human assessments separately from AI review.
+A real citation can still be irrelevant. Source coverage, text extraction, and evidence selection define what the system can answer. The next evaluation should use fresh questions and a separate human review.

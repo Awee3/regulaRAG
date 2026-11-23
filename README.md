@@ -51,12 +51,12 @@ Gunakan satu proses aplikasi untuk menghindari duplikasi model. LLM menggunakan 
 ## Cara kerja dan batas akurasi
 
 1. Manifest mengizinkan hanya dokumen aktif terverifikasi dan checksum yang cocok.
-2. Retrieval memilih kandidat BM25 (default), dense, hybrid RRF atau hybrid + reranker.
+2. BM25 (default) memakai teks chunk. Jalur dense memakai embedding pertanyaan E5 untuk mencari vektor yang sudah disimpan di Qdrant Local. Hybrid menggabungkan kedua ranking dengan RRF dan dapat memakai reranker CPU.
 3. Jalur jawaban mengecualikan argumen pihak dalam putusan. Untuk pasal dengan relasi uji materi yang dicatat manifest, amar relevan disertakan. Metadata relasi statis, bukan analisis hukum otomatis.
 4. Model 1.7B memilih cuplikan asli. JSON schema membatasi teks jawaban ke pilihan kutipan; backend memeriksa kecocokan kutipan dan ID evidence. Angka dan syarat sumber tidak diparafrasakan.
 5. Bukti tidak cukup atau output tidak valid menghasilkan abstention/error yang eksplisit. Citation ID valid dan teks asli tetap belum menjamin kutipannya menjawab pertanyaan; lihat hasil uji kualitas terbaru.
 
-Kutipan panjang dibatasi context 4096 token; evidence awal dapat berupa cuplikan bertanda excerpt_only. Model dapat memilih ayat yang kurang relevan, menolak pertanyaan answerable, atau tidak menangkap semua bukti lintas dokumen. Teks hasil ekstraksi PDF dapat kehilangan kata; cocokkan bunyi persis dengan PDF resmi. Putusan yang belum dapat dipisahkan dengan aman tidak dipakai sebagai dasar jawaban default.
+Kutipan panjang dibatasi context 4096 token; evidence awal dapat berupa cuplikan bertanda excerpt_only. Model dapat memilih ayat yang kurang relevan, menolak pertanyaan answerable, atau tidak menangkap semua bukti lintas dokumen. Teks hasil ekstraksi PDF dapat kehilangan kata; cocokkan bunyi persis dengan PDF resmi. Putusan yang belum dapat dipisahkan dengan aman tidak dipakai sebagai dasar jawaban default. [Diagram alur sistem](docs/architecture.md)
 
 ## Mode retrieval opsional
 
@@ -108,6 +108,8 @@ Hasil kualitas pipeline terkini: [docs/quality_acceptance.md](docs/quality_accep
 
 ## Portfolio and LinkedIn demo
 
-[The English portfolio report](docs/portfolio/report.md) explains the problem, architecture, technical choices, evaluation, fixes, and limitations. The [2–3 minute demo guide](docs/portfolio/demo.md) includes three scenarios with actual screenshots. LinkedIn materials include an [eight-page English PDF carousel](docs/portfolio/regularag-linkedin.pdf), [editable PowerPoint](docs/portfolio/regularag-linkedin.pptx), and [caption](docs/portfolio/caption.md).
+The English portfolio traces the Qdrant Local implementation from verified PDFs through indexing, query routing, evidence selection, and cited excerpts. The demo guide includes a hybrid walkthrough and archived Indonesian UI screenshots. [Portfolio report](docs/portfolio/report.md) · [2–3 minute demo guide](docs/portfolio/demo.md) · [Eight-page LinkedIn PDF](docs/portfolio/regularag-linkedin.pdf) · [Editable PowerPoint](docs/portfolio/regularag-linkedin.pptx) · [Caption](docs/portfolio/caption.md)
 
-AI review is reported separately from human validation, which is not yet available. Original Indonesian screenshots and legal excerpts remain unchanged evidence, with English explanations and clearly labeled translations. The recorded demo does not update development scores or legal verification dates. BPK was unavailable during that demo; source inspection used an official local PDF with a matching checksum. Recurring footers, page numbers, and display dates remain removed from the carousel.
+The LinkedIn video follows the live Streamlit interface through BM25, Dense/E5, the source citation, and an out-of-collection query. The walkthrough pairs the Indonesian interface with English narration and captions. [LinkedIn MP4](docs/portfolio/video/regularag-linkedin.mp4) · [Offline HTML](docs/portfolio/video/regularag-linkedin.html) · [Rebuild and playback checks](docs/portfolio/video/README.md)
+
+The migration comparison matched the top-ten ranking on 50 questions across five retrieval configurations. AI review of the hybrid answer smoke test found a wrong source selection and a false abstention. Human validation is pending. [Migration evaluation](docs/quality_acceptance.md#migrasi-qdrant-local)
