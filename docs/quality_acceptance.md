@@ -1,5 +1,29 @@
 # Penerimaan kualitas RegulaRAG
 
+## Koreksi kutipan dan seleksi bukti
+
+Pada 23 November 2026, Codex memeriksa gambar halaman 6, 19, dan 30 pada PDF BPK UU 27/2022 yang checksum-nya cocok dengan manifest. Ingestion memulihkan kata **menyampaikan** pada Pasal 46 ayat (1) dan ejaan **mengungkapkan** pada Pasal 67 ayat (2). Setiap koreksi terikat pada SHA-256 berkas, nomor halaman PDF, dan teks di sekelilingnya. PDF sumber serta tanggal verifikasi hukum tetap mengikuti manifest.
+
+Dua kali build menghasilkan 593 chunk dengan SHA-256 `9c8974b005d542ce7ee44b91de6b3d0c1bf04bcd04a2316284b44cf459aeec63` di Windows. Hanya teks dua chunk tersebut yang berubah. ID, halaman, dan URL sama dengan corpus 18 November. Indeks Qdrant dibangun dari hasil yang baru.
+
+Enam pertanyaan dijalankan melalui `POST /query` menggunakan Qwen3 1.7B di masing-masing mode BM25 dan hybrid. Untuk setiap jawaban, ID, dokumen, halaman, URL, dan teks citation cocok dengan chunk yang tersimpan. Teks jawaban juga diperiksa terhadap bukti untuk kasus yang ditanyakan. [Hasil per pertanyaan](../evaluation/results/quality_grounding_recheck.json)
+
+| Kasus | Hasil di kedua mode |
+|---|---|
+| Q02, tenggat pemberitahuan | Mengutip Pasal 46 di halaman 19. Ayat (1) memuat “wajib menyampaikan pemberitahuan secara tertulis” beserta tenggatnya. |
+| Q06 dan N04, pidana pengungkapan | Mengembalikan seluruh ayat (2) Pasal 67 di halaman 30. Pilihan kutipan dibatasi pada ayat yang menyebut perbuatan dan ancaman pidananya bersama-sama. Citation menampilkan chunk pasal untuk melihat konteks. |
+| Q08 dan N05, akses dan salinan | Mengutip Pasal 7 di halaman 6 untuk frasa “informasi pribadinya” dan “informasi pribadiku”. |
+| N03, jadwal penerbangan | Abstain dengan alasan `no_evidence` dan nol citation. |
+
+Untuk mengulang kasus tersebut setelah membangun corpus dan indeks, jalankan kedua perintah berikut. Ganti `hybrid` dengan `bm25` untuk menguji mode default dan gunakan nama berkas keluaran yang berbeda.
+
+```powershell
+.\.venv\Scripts\python.exe -m evaluation.run_answers --mode hybrid --dataset evaluation/dataset/retrieval_sample.jsonl --limit 10 --output data/processed/benchmark-hybrid.jsonl
+.\.venv\Scripts\python.exe -m evaluation.run_answers --mode hybrid --dataset evaluation/dataset/quality_smoke.jsonl --limit 5 --output data/processed/probe-hybrid.jsonl
+```
+
+Keenam pertanyaan ini merupakan pemeriksaan regresi development dengan review sumber oleh AI. Validasi manusia masih tertunda. Pemeriksaan Q02 mencakup bunyi pemberitahuan pada ayat (1). Pada ayat (2), lapisan teks PDF masih memisahkan penanda huruf a, b, dan c dari butirnya.
+
 ## Migrasi Qdrant Local
 
 Pengujian 18 November 2026 memakai corpus identik berisi 593 chunk serta 29 pertanyaan dev dan 21 holdout. Hash SHA-256 corpus, manifest, dan dataset dicatat sebelum dan sesudah di `data/processed/migrasi-qdrant-20261118-114459/`. Corpus dibangun ulang dari empat PDF yang lolos checksum dan menghasilkan SHA-256 `b499f86a469971e8d6839652fa49d9bd6421430d8b86ac2b2f53481228ccc7c5`.
@@ -27,7 +51,7 @@ Review Codex (AI) menemukan dua kegagalan kualitas jawaban.
 
 Pemutaran ulang algoritme ranking sebelum migrasi dengan vektor E5 tersimpan menghasilkan urutan 20 kandidat normatif yang sama untuk Q06 dan Q08. Probe aktual `Apa isi Pasal 46?` juga memiliki top 5 dense yang sama sebelum dan sesudah. Keduanya melewatkan chunk Pasal 46 di lima besar. Artefak pemeriksaan tersedia di `jawaban-hybrid.jsonl`, `diagnosis-jawaban.json`, `probe-pasal46-sebelum.json`, dan `smoke-ui.json`. Validasi manusia masih tertunda.
 
-Snapshot Qdrant lokal siap untuk mode retrieval vektor. BM25 adalah mode jawaban default. Penggunaan hybrid sebagai jalur jawaban standar menunggu perbaikan relevansi jawaban dan abstention di atas.
+Pada saat migrasi, BM25 dipertahankan sebagai mode default setelah dua kegagalan tersebut. Hasil uji ulang ada pada bagian koreksi di atas.
 
 ## Penerimaan kualitas jalur 1.7B — 17 November 2026
 

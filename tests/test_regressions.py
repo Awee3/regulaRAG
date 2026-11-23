@@ -1,13 +1,88 @@
+import hashlib
 import io
 import json
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
+from app.evidence import select_evidence
 from app.generation import InvalidModelResponse, generate
+from ingestion import build_corpus
 from ingestion.legal_text import parse_pages
 
 
 class RegressionTests(unittest.TestCase):
+    def test_article_46_reading_is_scoped_to_the_verified_pdf_and_page(self):
+        digest = "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6"
+        layer = ("Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\n"
+                 "Pengendali Data Pribadi wajib\npemberitahuan secara tertulis")
+        source = layer.replace("wajib\n", "wajib menyampaikan\n")
+        self.assertEqual(build_corpus.correct_text_layer(layer, digest, 19), source)
+        self.assertEqual(build_corpus.correct_text_layer(source, digest, 19), source)
+        self.assertEqual(build_corpus.correct_text_layer(layer, "different-pdf", 19), layer)
+        self.assertEqual(build_corpus.correct_text_layer(layer, digest, 18), layer)
+        with self.assertRaises(ValueError):
+            build_corpus.correct_text_layer(layer + "\n" + layer, digest, 19)
+
+    def test_ingestion_puts_the_checked_reading_in_the_citable_chunk(self):
+        import pymupdf
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with pymupdf.open() as pdf:
+                page = pdf.new_page()
+                page.insert_text((40, 40), "Pasal 46\nPengendali Data Pribadi wajib\npemberitahuan secara tertulis")
+                pdf.save(root / "fixture.pdf")
+            digest = hashlib.sha256((root / "fixture.pdf").read_bytes()).hexdigest()
+            doc = {"document_id": "fixture", "sha256": digest, "local_path": "fixture.pdf", "status": "verified",
+                   "corpus_eligible": True, "official_source_url": "https://official.test", "source_kind": "regulation_full_text"}
+            manifest, output = root / "manifest.jsonl", root / "chunks.jsonl"
+            manifest.write_text(json.dumps(doc), encoding="utf-8")
+            rule = build_corpus.TEXT_LAYER_READINGS[build_corpus.PDP_PDF_SHA256, 19]
+            with patch.dict(build_corpus.TEXT_LAYER_READINGS, {(digest, 1): rule}):
+                self.assertEqual(build_corpus.build(manifest, output, root), 1)
+            chunk = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual((chunk["chunk_id"], chunk["page_start"], chunk["page_end"]), ("fixture:article:46", 1, 1))
+            self.assertIn("wajib menyampaikan\npemberitahuan secara tertulis", chunk["text"])
+
+    def test_disclosure_penalty_offers_only_the_matching_source_paragraph(self):
+        question = "Berapa lama ancaman penjara untuk pengungkapan data pribadi milik orang lain?"
+        paragraph = ("(2) Setiap Orang yang dengan sengaja dan melawan hukum\n"
+                     "mengungkapkan Data Pribadi yang bukan miliknya\n"
+                     "sebagaimana dimaksud dalam Pasal 65 ayat (2) dipidana\n"
+                     "dengan pidana penjara paling lama 4 (empat) tahun\n"
+                     "dan/atau pidana denda paling banyak\nRp4.000.000.000,00 (empat miliar rupiah).")
+        layer = paragraph.replace("mengungkapkan", "mengunglapkan")
+        self.assertEqual(build_corpus.correct_text_layer(layer, build_corpus.PDP_PDF_SHA256, 30), paragraph)
+        hits = [
+            {"text": "Orang yang memalsukan Data Pribadi dipidana dengan pidana penjara enam tahun."},
+            {"text": "Dilarang mengungkapkan Data Pribadi yang bukan miliknya."},
+            {"text": "Pasal 67\n(1) Mengumpulkan Data Pribadi dipidana lima tahun.\n" + paragraph
+                     + "\n(3) Menggunakan Data Pribadi dipidana lima tahun."},
+        ]
+        self.assertEqual(select_evidence(question, hits, limit=1), hits[2:])
+        self.assertEqual(select_evidence(question, hits[:2]), [])
+        self.assertEqual(select_evidence("Apa perbedaan pidana pemalsuan dan pengungkapan data?", hits), hits)
+        with patch("app.generation.urlopen") as model:
+            self.assertTrue(generate(question, hits[:2])["abstained"])
+            model.assert_not_called()
+        raw = {"message": {"content": json.dumps({"answer": "S1", "citation_ids": ["E3"], "abstained": False})}}
+        with patch("app.generation.urlopen", return_value=io.BytesIO(json.dumps(raw).encode())) as model:
+            result = generate(question, hits)
+        options = json.loads(json.loads(model.call_args.args[0].data)["messages"][1]["content"])["quote_options"]
+        self.assertEqual([option["text"] for option in options], [paragraph])
+        self.assertEqual((result["answer"], result["citation_ids"]), (paragraph, ["E3"]))
+
+    def test_access_to_personal_information_accepts_possessives(self):
+        hits = [{"text": "Subjek Data Pribadi berhak mendapatkan akses dan memperoleh salinan Data Pribadi."}]
+        for noun in ("informasi pribadinya", "informasi pribadiku", "informasi pribadimu"):
+            with self.subTest(noun=noun):
+                self.assertEqual(select_evidence(f"Bagaimana memperoleh salinan {noun}?", hits), hits)
+        self.assertEqual(select_evidence("Bagaimana memperoleh salinan tiket penerbangannya?", hits), [])
+        self.assertEqual(select_evidence("Bisakah aku melihat dan mendapat salinan informasi pribadiku?",
+                                         [{"text": "Pengendali memberikan akses kepada Subjek Data Pribadi."}]), [])
+
     def test_explanation_does_not_leak_into_last_article(self):
         chunks = parse_pages("UU", ["Pasal 76\nBerlaku.\nPENJEI,ASAN\nUMUM\nPengantar\nPasal 1\nPenjelasan"], "https://official.test")
         self.assertEqual(chunks[0]["text"], "Pasal 76\nBerlaku.")

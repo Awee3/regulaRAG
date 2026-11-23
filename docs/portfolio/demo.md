@@ -6,7 +6,7 @@
 
 ## Prepare the local index
 
-Follow the Windows setup in the README on the Qdrant migration branch. Run these commands from the repository root before starting the UI. Close any reader of the same Qdrant Local directory before building.
+Follow the Windows setup in the README on `main`. Run these commands from the repository root before starting the UI. Close any reader of the same Qdrant Local directory before building.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[ui,dense]"
@@ -25,9 +25,9 @@ Open <http://127.0.0.1:8501>. Select **“Hybrid — gabungan keduanya”** unde
 |---|---|---|
 | 00:00–00:30 | Carousel pages 2–3 and the retrieval selector | “Ingestion verifies official PDFs and keeps their text and page metadata. E5 embeds the passages during the build and Qdrant Local saves those vectors on disk. Hybrid search combines BM25 keyword matches with Qdrant’s semantic matches.” |
 | 00:30–01:15 | Submit the breach-notification question | “E5 embeds this question. Qdrant filters and ranks the stored vectors. RRF merges the results with BM25. Qwen3 selects excerpt IDs from the evidence, and the backend validates the citation.” |
-| 01:15–01:45 | Expand the citation and open the original source | “The citation leads to Article 46 and PDF page 19. Look for the word the extraction dropped.” |
+| 01:15–01:45 | Expand the citation and open the original source | “The citation leads to Article 46 on PDF page 19. Compare the verb ‘menyampaikan’ in the excerpt with the printed line.” |
 | 01:45–02:15 | Submit the flight-schedule question | “The evidence gate can return an abstention with no citations. A missing vector index produces a separate retrieval error.” |
-| 02:15–02:45 | Show the evaluation and limitations | “The migration matched the prior ranking order on the sample. AI review still found a wrong excerpt and a false abstention. Human validation is pending.” |
+| 02:15–02:45 | Show the evaluation and limitations | “The migration matched the prior ranking order on the sample. The answer recheck shows how the disclosure and access questions changed after two fixes. Human validation is pending.” |
 
 ## Scenario 1. Follow a hybrid answer
 
@@ -47,7 +47,7 @@ The migration’s Q02 hybrid smoke returned an excerpt with chunk ID `UU_27_2022
 2. Click **“Buka sumber resmi”** to open the BPK detail page. If the portal opens, navigate to PDF page 19. The citation opens the detail page first.
 3. If the portal is unavailable, show the official local copy after comparing its SHA-256 against the manifest. The archived demo received “The service is unavailable” and used this fallback. [BPK detail page](https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022) · [Official PDF in the manifest](https://peraturan.bpk.go.id/Home/Download/224884/UU%20Nomor%2027%20Tahun%202022.pdf)
 
-The source PDF contains **“menyampaikan”** in Article 46(1). The retrieved text drops it. This is why the page-level citation remains useful even when text extraction is imperfect.
+The source PDF contains **“menyampaikan”** in Article 46(1). The archived screenshot and recording show an earlier extraction that omitted the verb. Rebuilding the corpus with the corrected ingestion restores it. [Extraction and answer checks](../quality_acceptance.md#koreksi-kutipan-dan-seleksi-bukti)
 
 ![Archived BM25 citation screenshot](assets/demo-citation.jpg)
 
@@ -65,4 +65,4 @@ The current hybrid check returned `no_evidence` with no citations. The hybrid sm
 
 ## Close with the limits
 
-The migration’s top-ten ordering matched the baseline for 50 benchmark questions across five configurations. The answer smoke test still found a wrong article (Q06) and a false abstention on a question about access and copies (Q08). Both cases had the same candidate ordering in the before/after replay. Say **“AI review, human validation pending.”** The prototype is a document search aid. [Quality review](../quality_acceptance.md#migrasi-qdrant-local)
+The migration’s top-ten ordering matched the baseline for 50 benchmark questions across five configurations. Its answer smoke test found a wrong article (Q06) and a false abstention (Q08). After the fixes, both questions and their paraphrases returned the expected provision in BM25 and hybrid. A human review remains pending. [Migration results](../quality_acceptance.md#migrasi-qdrant-local) · [Targeted recheck](../quality_acceptance.md#koreksi-kutipan-dan-seleksi-bukti)

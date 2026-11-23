@@ -6,8 +6,8 @@ The carousel walks through indexing, retrieval, and citation. E5 embeds passages
 
 The migration preserved all 250 top-ten rankings across 50 questions and five configurations. On 15 answerable holdout questions, average Recall@5 was 65.0% for BM25 and 46.7% for hybrid with reranking. BM25 remains the default.
 
-In the 10-prompt hybrid smoke test, seven prompts returned excerpts and three abstained. AI review found one wrong excerpt and one false abstention. Human validation is pending.
+In the migration’s 10-prompt hybrid smoke test, seven prompts returned excerpts and three abstained. AI review found one wrong excerpt and one false abstention. After the fixes, both BM25 and hybrid selected the expected provisions for those questions and two paraphrases. Human validation is pending.
 
-Read the migration evaluation on GitHub https://github.com/Awee3/regulaRAG/blob/codex/migrasi-qdrant/docs/quality_acceptance.md#migrasi-qdrant-local
+[Read the evaluation and follow-up on GitHub](https://github.com/Awee3/regulaRAG/blob/main/docs/quality_acceptance.md)
 
 #RAG #Qdrant #AIEngineering

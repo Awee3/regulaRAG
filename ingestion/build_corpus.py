@@ -9,6 +9,27 @@ from pathlib import Path
 
 from .legal_text import parse_pages
 
+PDP_PDF_SHA256 = "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6"
+# Transcribed from the visible page images of this exact BPK PDF.
+TEXT_LAYER_READINGS = {
+    (PDP_PDF_SHA256, 19): ("Pengendali Data Pribadi wajib\npemberitahuan secara tertulis",
+                           "Pengendali Data Pribadi wajib menyampaikan\npemberitahuan secara tertulis"),
+    (PDP_PDF_SHA256, 30): ("mengunglapkan Data Pribadi yang bukan miliknya",
+                           "mengungkapkan Data Pribadi yang bukan miliknya"),
+}
+
+
+def correct_text_layer(text: str, digest: str, page_number: int) -> str:
+    reading = TEXT_LAYER_READINGS.get((digest, page_number))
+    if reading is None:
+        return text
+    extracted, printed = reading
+    if text.count(extracted) == 1 and printed not in text:
+        return text.replace(extracted, printed)
+    if extracted not in text and text.count(printed) == 1:
+        return text
+    raise ValueError(f"Periksa kembali teks PDF pada halaman {page_number} sebelum menerapkan koreksi.")
+
 
 def build(manifest_path: Path, output_path: Path, root: Path) -> int:
     manifest = [json.loads(line) for line in manifest_path.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -22,7 +43,8 @@ def build(manifest_path: Path, output_path: Path, root: Path) -> int:
             raise ValueError(f"Path di luar workspace data: {relpath}")
         if not path.is_file() or not doc.get("sha256"):
             raise ValueError(f"PDF/checksum belum tersedia untuk {doc['document_id']}")
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        pdf_bytes = path.read_bytes()
+        digest = hashlib.sha256(pdf_bytes).hexdigest()
         if digest != doc["sha256"]:
             raise ValueError(f"Checksum tidak cocok untuk {doc['document_id']}")
         try:
@@ -30,10 +52,10 @@ def build(manifest_path: Path, output_path: Path, root: Path) -> int:
         except ImportError as exc:
             raise RuntimeError("Pasang dependensi proyek: python -m pip install -e .") from exc
         try:
-            with fitz.open(path) as pdf:
+            with fitz.open(stream=pdf_bytes, filetype="pdf") as pdf:
                 if pdf.is_encrypted:
                     raise ValueError("PDF terenkripsi tidak didukung")
-                pages = [page.get_text("text") for page in pdf]
+                pages = [correct_text_layer(page.get_text("text"), digest, page.number + 1) for page in pdf]
                 if not any(page.strip() for page in pages):
                     raise ValueError("PDF kosong/scan tidak memiliki text layer; OCR manual diperlukan")
         except (RuntimeError, ValueError) as exc:
