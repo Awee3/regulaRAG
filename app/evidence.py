@@ -3,8 +3,27 @@ import re
 from datetime import date
 
 
+def asks_disclosure_penalty(question: str) -> bool:
+    disclosure = r"(?:membocorkan|dibocorkan|pembocoran|mengungkapkan|diungkapkan|pengungkapan)"
+    # Negated conduct and comparisons need different evidence.
+    return bool(re.search(r"\b(?:pidana|dipidana|penjara)\b", question, re.IGNORECASE)
+                and re.search(rf"\b{disclosure}\b", question, re.IGNORECASE)
+                and not re.search(rf"\b(?:tidak|bukan|tanpa)\s+(?:{disclosure}|sengaja)\b|"
+                                  r"\b(?:memalsukan|pemalsuan|palsu|mengumpulkan|pengumpulan|memperoleh|"
+                                  r"perolehan|menggunakan|penggunaan|administratif)\b", question, re.IGNORECASE))
+
+
+def disclosure_penalty_paragraphs(text: str) -> list[str]:
+    paragraphs = re.split(r"(?m)(?=^[ \t]*\(\d+\))", text)
+    return [paragraph.strip() for paragraph in paragraphs
+            if re.search(r"\b(?:mengungkapkan|pengungkapan)\b", paragraph, re.IGNORECASE)
+            and re.search(r"\b(?:dipidana|pidana\s+(?:penjara|denda))\b", paragraph, re.IGNORECASE)]
+
+
 def select_evidence(question, hits, limit=5):
-    if not re.search(r"\b(?:data|pribadi|pdp|pasal|ayat|uu|undang|putusan|mk|amar|pengendali|prosesor|persetujuan|pemrosesan|dpo|ppdp|pelindungan|perlindungan|subjek|transfer|pidana|denda|kebocoran)\b", question, re.IGNORECASE):
+    if not re.search(r"\b(?:data|pribadi|informasi\s+pribadi(?:ku|mu|nya)|pdp|pasal|ayat|uu|undang|putusan|mk|"
+                     r"amar|pengendali|prosesor|persetujuan|pemrosesan|dpo|ppdp|pelindungan|perlindungan|subjek|"
+                     r"transfer|pidana|denda|kebocoran)\b", question, re.IGNORECASE):
         return []
     if re.search(r"\b(?:siapa|sebutkan)\s+(?:nama|ketua|pejabat)\b", question, re.IGNORECASE):
         return []
@@ -27,6 +46,12 @@ def select_evidence(question, hits, limit=5):
         selected = [hit for hit in selected if "transfer" in hit["text"].casefold() and re.search(r"(?:ke|di) luar wilayah", " ".join(hit["text"].casefold().split()))]
     if re.search(r"\bkeamanan\b", question, re.IGNORECASE):
         selected = [hit for hit in selected if "keamanan" in hit["text"].casefold() and "langkah" in hit["text"].casefold()]
+    if asks_disclosure_penalty(question):
+        selected = [hit for hit in selected if disclosure_penalty_paragraphs(hit["text"])]
+    if (re.search(r"\bsalinan\s+(?:dari\s+)?(?:data|informasi)\s+pribadi(?:ku|mu|nya)?\b", question, re.IGNORECASE)
+            and re.search(r"\b(?:akses|mengakses|melihat)\b", question, re.IGNORECASE)):
+        selected = [hit for hit in selected if re.search(r"\bakses\b", hit["text"], re.IGNORECASE)
+                    and re.search(r"\bsalinan\b", hit["text"], re.IGNORECASE)]
     return selected[:limit]
 
 

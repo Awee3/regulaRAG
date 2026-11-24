@@ -1,0 +1,234 @@
+{
+  "review_status": "ai_reviewed",
+  "human_review_status": "pending",
+  "scope": "Targeted development recheck of three fixes, two paraphrases and one out-of-corpus control in each mode.",
+  "model": "qwen3:1.7b-q4_K_M",
+  "corpus_sha256": "9c8974b005d542ce7ee44b91de6b3d0c1bf04bcd04a2316284b44cf459aeec63",
+  "source_sha256": "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6",
+  "results": [
+    {
+      "question_id": "Q02",
+      "question": "Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?",
+      "mode": "bm25",
+      "run_utc": "2026-11-23T14:37:37.361301+00:00",
+      "answer": "Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\nPengendali Data Pribadi wajib menyampaikan\npemberitahuan secara tertulis paling lambat 3 x 24\n(tiga kali dua puluh empat) jam kepada:\na. Subjek Data Pribadi; dan\nb. lembaga.\n(2) Pemberitahuan tertulis sebagaimana dimaksud pada\nayat (1) minimal memuat:\nData Pribadi yang terungkap;\nkapan dan bagaimana Data Pribadi terungkap; dan\nupaya penanganan dan pemulihan atas\nterungkapnya Data Pribadi oleh Pengendali Data\nPribadi.\n(3) Dalam hal tertentu, Pengendali Data Pribadi wajib\nmemberitahukan kepada masyarakat mengenai\nkegagalan Pelindungan Data Pribadi.",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:46",
+          "document_id": "UU_27_2022",
+          "page_start": 19,
+          "page_end": 19,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "Q06",
+      "question": "Apa ancaman pidana jika seseorang dengan sengaja membocorkan data pribadi milik orang lain secara melawan hukum?",
+      "mode": "bm25",
+      "run_utc": "2026-11-23T14:37:43.131550+00:00",
+      "answer": "(2) Setiap Orang yang dengan sengaja dan melawan hukum\nmengungkapkan Data Pribadi yang bukan miliknya\nsebagaimana dimaksud dalam Pasal 65 ayat (2) dipidana\ndengan pidana penjara paling lama 4 (empat) tahun\ndan/atau pidana denda paling banyak\nRp4.000.000.000,00 (empat miliar rupiah).",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:67",
+          "document_id": "UU_27_2022",
+          "page_start": 30,
+          "page_end": 30,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "Q08",
+      "question": "Bagaimana seseorang bisa melihat dan memperoleh salinan informasi pribadinya?",
+      "mode": "bm25",
+      "run_utc": "2026-11-23T14:37:48.270111+00:00",
+      "answer": "Pasal 7\nSubjek Data Pribadi berhak mendapatkan akses dan\nmemperoleh salinan Data Pribadi tentang dirinya sesuai\ndengan ketentuan peraturan perundang-undangan.",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:7",
+          "document_id": "UU_27_2022",
+          "page_start": 6,
+          "page_end": 6,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "N04",
+      "question": "Berapa lama ancaman penjara untuk pengungkapan data pribadi orang lain secara sengaja dan melawan hukum?",
+      "mode": "bm25",
+      "run_utc": "2026-11-23T14:37:53.610815+00:00",
+      "answer": "(2) Setiap Orang yang dengan sengaja dan melawan hukum\nmengungkapkan Data Pribadi yang bukan miliknya\nsebagaimana dimaksud dalam Pasal 65 ayat (2) dipidana\ndengan pidana penjara paling lama 4 (empat) tahun\ndan/atau pidana denda paling banyak\nRp4.000.000.000,00 (empat miliar rupiah).",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:67",
+          "document_id": "UU_27_2022",
+          "page_start": 30,
+          "page_end": 30,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "N05",
+      "question": "Bisakah aku melihat dan meminta salinan informasi pribadiku?",
+      "mode": "bm25",
+      "run_utc": "2026-11-23T14:37:58.727559+00:00",
+      "answer": "Pasal 7\nSubjek Data Pribadi berhak mendapatkan akses dan\nmemperoleh salinan Data Pribadi tentang dirinya sesuai\ndengan ketentuan peraturan perundang-undangan.",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:7",
+          "document_id": "UU_27_2022",
+          "page_start": 6,
+          "page_end": 6,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "N03",
+      "question": "Apa jadwal penerbangan Jakarta Tokyo besok?",
+      "mode": "bm25",
+      "run_utc": "2026-11-23T14:37:58.770329+00:00",
+      "answer": "Corpus saat ini tidak menyediakan bukti yang memadai untuk menjawab pertanyaan ini.",
+      "abstained": true,
+      "reason": "no_evidence",
+      "citations": [],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "Q02",
+      "question": "Berapa lama batas waktu untuk memberi tahu subjek data setelah terjadi kebocoran data pribadi?",
+      "mode": "hybrid",
+      "run_utc": "2026-11-23T14:36:52.373249+00:00",
+      "answer": "Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\nPengendali Data Pribadi wajib menyampaikan\npemberitahuan secara tertulis paling lambat 3 x 24\n(tiga kali dua puluh empat) jam kepada:\na. Subjek Data Pribadi; dan\nb. lembaga.\n(2) Pemberitahuan tertulis sebagaimana dimaksud pada\nayat (1) minimal memuat:\nData Pribadi yang terungkap;\nkapan dan bagaimana Data Pribadi terungkap; dan\nupaya penanganan dan pemulihan atas\nterungkapnya Data Pribadi oleh Pengendali Data\nPribadi.\n(3) Dalam hal tertentu, Pengendali Data Pribadi wajib\nmemberitahukan kepada masyarakat mengenai\nkegagalan Pelindungan Data Pribadi.",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:46",
+          "document_id": "UU_27_2022",
+          "page_start": 19,
+          "page_end": 19,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "Q06",
+      "question": "Apa ancaman pidana jika seseorang dengan sengaja membocorkan data pribadi milik orang lain secara melawan hukum?",
+      "mode": "hybrid",
+      "run_utc": "2026-11-23T14:37:00.452615+00:00",
+      "answer": "(2) Setiap Orang yang dengan sengaja dan melawan hukum\nmengungkapkan Data Pribadi yang bukan miliknya\nsebagaimana dimaksud dalam Pasal 65 ayat (2) dipidana\ndengan pidana penjara paling lama 4 (empat) tahun\ndan/atau pidana denda paling banyak\nRp4.000.000.000,00 (empat miliar rupiah).",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:67",
+          "document_id": "UU_27_2022",
+          "page_start": 30,
+          "page_end": 30,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "Q08",
+      "question": "Bagaimana seseorang bisa melihat dan memperoleh salinan informasi pribadinya?",
+      "mode": "hybrid",
+      "run_utc": "2026-11-23T14:37:08.146904+00:00",
+      "answer": "Pasal 7\nSubjek Data Pribadi berhak mendapatkan akses dan\nmemperoleh salinan Data Pribadi tentang dirinya sesuai\ndengan ketentuan peraturan perundang-undangan.",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:7",
+          "document_id": "UU_27_2022",
+          "page_start": 6,
+          "page_end": 6,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "N04",
+      "question": "Berapa lama ancaman penjara untuk pengungkapan data pribadi orang lain secara sengaja dan melawan hukum?",
+      "mode": "hybrid",
+      "run_utc": "2026-11-23T14:37:15.751251+00:00",
+      "answer": "(2) Setiap Orang yang dengan sengaja dan melawan hukum\nmengungkapkan Data Pribadi yang bukan miliknya\nsebagaimana dimaksud dalam Pasal 65 ayat (2) dipidana\ndengan pidana penjara paling lama 4 (empat) tahun\ndan/atau pidana denda paling banyak\nRp4.000.000.000,00 (empat miliar rupiah).",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:67",
+          "document_id": "UU_27_2022",
+          "page_start": 30,
+          "page_end": 30,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "N05",
+      "question": "Bisakah aku melihat dan meminta salinan informasi pribadiku?",
+      "mode": "hybrid",
+      "run_utc": "2026-11-23T14:37:23.032074+00:00",
+      "answer": "Pasal 7\nSubjek Data Pribadi berhak mendapatkan akses dan\nmemperoleh salinan Data Pribadi tentang dirinya sesuai\ndengan ketentuan peraturan perundang-undangan.",
+      "abstained": false,
+      "reason": null,
+      "citations": [
+        {
+          "chunk_id": "UU_27_2022:article:7",
+          "document_id": "UU_27_2022",
+          "page_start": 6,
+          "page_end": 6,
+          "source_url": "https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022"
+        }
+      ],
+      "citation_matches_store": true,
+      "passed": true
+    },
+    {
+      "question_id": "N03",
+      "question": "Apa jadwal penerbangan Jakarta Tokyo besok?",
+      "mode": "hybrid",
+      "run_utc": "2026-11-23T14:37:24.926734+00:00",
+      "answer": "Corpus saat ini tidak menyediakan bukti yang memadai untuk menjawab pertanyaan ini.",
+      "abstained": true,
+      "reason": "no_evidence",
+      "citations": [],
+      "citation_matches_store": true,
+      "passed": true
+    }
+  ]
+}

@@ -55,7 +55,7 @@ The answer pipeline includes eligible operative court rulings using the manifest
 
 The recorded hybrid UI smoke test returned Article 46 of Law No. 27 of 2022 on PDF page 19. The same breach-notification case appears as Q02 in the migration’s answer smoke test. This checkout’s hybrid retrieval placed `UU_27_2022:article:46` first for that question with the answer path’s document and section filters. The demo guide separates these results from the earlier BM25 screenshots. [Demo guide](demo.md) · [Evidence record](demo_run.json)
 
-The rendered PDF includes **“menyampaikan”** in paragraph (1). The stored extraction drops that word. Checking the original document exposes the difference even when the citation matches the stored chunk.
+The rendered PDF includes **“menyampaikan”** in paragraph (1). The migration-era extraction omitted that word. Ingestion now restores it for the checked PDF revision. [Source and answer recheck](../quality_acceptance.md#koreksi-kutipan-dan-seleksi-bukti)
 
 ## Evaluation and remaining limits
 
@@ -63,14 +63,14 @@ The rendered PDF includes **“menyampaikan”** in paragraph (1). The stored ex
 |---|---|
 | Retrieval comparison | Top-ten order matched before and after migration for all **50 questions** across **five configurations**. The corpus, split, and candidate depth were held fixed. |
 | Hybrid answer smoke | **10** prompts completed without runtime errors. Seven returned excerpts and three abstained. Two of the abstentions were for unsupported questions. |
-| Technical verification | The current checkout passed **49 tests**, including seven Qdrant Local integration tests. Ruff passed as well. |
+| Technical verification | The migration passed **49 tests**, including seven Qdrant Local integration tests. Ruff passed as well. |
 | Review | AI review identified a wrong source selection and a false abstention. Independent human validation is pending. |
 
 The parity comparison measures rankings on this sample. The earlier CPU development review reported **12/13** cases passing with BM25. BM25 stays the default. [Migration results](../quality_acceptance.md#migrasi-qdrant-local) · [Acceptance details](../acceptance.md)
 
 ### Fixes from the earlier development review
 
-- **Sanctions from the wrong paragraph, Q06.** The original answer used figures from another paragraph. Excerpt selection now returns the source wording and conditions. A BM25 recheck included Article 67(2), alongside other paragraphs. The latest hybrid smoke still showed that the model can pick the wrong excerpt.
+- **Sanctions from the wrong paragraph, Q06.** The original answer used figures from another paragraph. An earlier BM25 recheck included Article 67(2) alongside other paragraphs. After the subsequent migration exposed a wrong hybrid selection, the targeted fix produced Article 67(2) alone in both modes. [Targeted recheck](../quality_acceptance.md#koreksi-kutipan-dan-seleksi-bukti)
 - **A party’s argument treated as authority, Q04.** The earlier answer relied on an argument page. The answer path now filters out party arguments and includes related operative rulings through manifest links. The BM25 recheck cited the operative part of Ruling 151 on PDF page 159. [Archived review](../answer_review.md) · [Development recheck](../quality_acceptance.md#hasil-aktual)
 
 ### Findings from the Qdrant migration

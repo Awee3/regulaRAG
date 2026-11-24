@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from app.config import CONFIG
+from app.evidence import asks_disclosure_penalty, disclosure_penalty_paragraphs
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", CONFIG["generation"]["ollama_url"])
 if urlparse(OLLAMA_URL).hostname not in {"127.0.0.1", "localhost", "::1"}:
@@ -36,6 +37,13 @@ def generate(question: str, evidence: list[dict]) -> dict:
         if not any(title_kind in item.get("title", "").casefold() and str(item.get("number")) == number and str(item.get("year")) == year for item in evidence):
             return {"answer": "Dokumen yang diminta tidak tersedia dalam evidence terverifikasi.", "citation_ids": [], "abstained": True}
     indexed_evidence = list(enumerate(evidence, start=1))
+    disclosure_penalty = asks_disclosure_penalty(question)
+    if disclosure_penalty:
+        indexed_evidence = [(i, dict(item, text=paragraph)) for i, item in indexed_evidence
+                            for paragraph in disclosure_penalty_paragraphs(item["text"])]
+        if not indexed_evidence:
+            return {"answer": "Ancaman pidana untuk pengungkapan tidak ditemukan dalam bukti.",
+                    "citation_ids": [], "abstained": True}
     definition = re.search(r"(?:apa (?:yang )?dimaksud (?:dengan )?|definisi )(.*?)[?.]?$", question, re.IGNORECASE)
     if definition:
         term = definition.group(1).strip().casefold()
@@ -50,7 +58,7 @@ def generate(question: str, evidence: list[dict]) -> dict:
         record = {key: item.get(key) for key in fields if item.get(key) is not None}
         record.update(id=f"E{i}", text=item["text"])
         cost = len(json.dumps(record, ensure_ascii=False).encode("utf-8"))
-        if not context and cost > budget:
+        if not context and cost > budget and not disclosure_penalty:
             text_budget = budget - (cost - len(item["text"].encode("utf-8"))) - 80
             if text_budget >= 128:
                 record["text"] = item["text"].encode("utf-8")[:text_budget].decode("utf-8", errors="ignore")
@@ -69,6 +77,7 @@ def generate(question: str, evidence: list[dict]) -> dict:
                 continue
             options.append({"id": f"S{len(options)+1}", "evidence_id": item["id"], "text": unit, "article": item.get("article"), "source_kind": item.get("source_kind")})
     by_id = {option["id"]: option for option in options}
+    evidence_ids = list(dict.fromkeys(item["id"] for item in context))
     payload = {
         "model": OLLAMA_MODEL,
         "stream": False,
@@ -76,7 +85,7 @@ def generate(question: str, evidence: list[dict]) -> dict:
         "think": False,
         "format": {"type": "object", "properties": {
             "answer": {"type": "string", "enum": ["", *by_id]},
-            "citation_ids": {"type": "array", "items": {"type": "string", "enum": [item["id"] for item in context]}},
+            "citation_ids": {"type": "array", "items": {"type": "string", "enum": evidence_ids}},
             "abstained": {"type": "boolean"}},
             "required": ["answer", "citation_ids", "abstained"], "additionalProperties": False},
         "messages": [
@@ -100,8 +109,7 @@ def generate(question: str, evidence: list[dict]) -> dict:
         result = json.loads(raw["message"]["content"])
         if not isinstance(result.get("answer"), str) or not isinstance(result.get("citation_ids"), list) or not isinstance(result.get("abstained"), bool):
             raise TypeError("Invalid response schema")
-        allowed = {item["id"] for item in context}
-        if not all(isinstance(ref, str) for ref in result["citation_ids"]) or not set(result["citation_ids"]) <= allowed:
+        if not all(isinstance(ref, str) and ref in evidence_ids for ref in result["citation_ids"]):
             raise ValueError("Citation outside evidence set")
         if result["answer"] in by_id and not result["abstained"]:
             option = by_id[result["answer"]]

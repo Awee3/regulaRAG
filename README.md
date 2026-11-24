@@ -71,6 +71,8 @@ BM25 dapat langsung digunakan setelah corpus dibangun. Untuk mode dense, hybrid,
 
 Builder menghitung embedding passage di CPU dan menyimpan snapshot di `data/processed/qdrant/`. Setelah restart, kueri dense menghitung embedding pertanyaan dan mengambil teks citation dari corpus. Unduhan awal bobot E5 terjadi saat build jika cache kosong. Reranker ONNX diunduh saat pertama dipilih. Model retrieval dilepas sebelum generation.
 
+Jika memakai corpus dari migrasi 18 November 2026, ulangi kedua perintah build di atas setelah memperbarui kode. Koreksi teks Pasal 46 dan 67 mengubah checksum corpus serta indeks dense yang cocok.
+
 Mulai kembali UI atau API setelah build. Jalankan satu proses pembaca untuk setiap direktori Qdrant Local. Tutup proses itu sebelum memakai CLI dense, evaluator atau builder pada direktori yang sama. `GET /health` melaporkan kesiapan corpus pada `index_ready` dan kesiapan indeks Qdrant pada `dense_index_ready`. Health dapat membuka indeks tanpa memuat model E5.
 
 Jika indeks hilang, rusak, atau kedaluwarsa setelah corpus atau konfigurasi embedding berubah, hentikan pembaca dan ulangi `python -m ingestion.build_vector_index`, kemudian coba kueri dense lagi. BM25 tetap dapat digunakan selama pemulihan. Builder mengaktifkan snapshot lengkap melalui `active.txt`. Untuk rollback, hentikan pembaca dan isi penunjuk itu dengan nama direktori snapshot lama yang cocok dengan corpus dan konfigurasi saat ini, lalu ulangi smoke dense dan periksa citation. Manifest aktif tetap menjadi sumber filter izin dokumen.
@@ -112,4 +114,4 @@ The English portfolio traces the Qdrant Local implementation from verified PDFs 
 
 The LinkedIn video follows the live Streamlit interface through BM25, Dense/E5, the source citation, and an out-of-collection query. The walkthrough pairs the Indonesian interface with English narration and captions. [LinkedIn MP4](docs/portfolio/video/regularag-linkedin.mp4) · [Offline HTML](docs/portfolio/video/regularag-linkedin.html) · [Rebuild and playback checks](docs/portfolio/video/README.md)
 
-The migration comparison matched the top-ten ranking on 50 questions across five retrieval configurations. AI review of the hybrid answer smoke test found a wrong source selection and a false abstention. Human validation is pending. [Migration evaluation](docs/quality_acceptance.md#migrasi-qdrant-local)
+The migration comparison matched the top-ten ranking on 50 questions across five retrieval configurations. After the source and evidence fixes, both BM25 and hybrid returned Article 67(2) for the disclosure-penalty question and Article 7 for the access-and-copy question. These were targeted development checks with AI source review. Human validation is pending. [Answer recheck](docs/quality_acceptance.md#koreksi-kutipan-dan-seleksi-bukti) · [Migration evaluation](docs/quality_acceptance.md#migrasi-qdrant-local)
