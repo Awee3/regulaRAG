@@ -12,23 +12,32 @@ from .legal_text import parse_pages
 PDP_PDF_SHA256 = "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6"
 # Transcribed from the visible page images of this exact BPK PDF.
 TEXT_LAYER_READINGS = {
-    (PDP_PDF_SHA256, 19): ("Pengendali Data Pribadi wajib\npemberitahuan secara tertulis",
-                           "Pengendali Data Pribadi wajib menyampaikan\npemberitahuan secara tertulis"),
-    (PDP_PDF_SHA256, 30): ("mengunglapkan Data Pribadi yang bukan miliknya",
-                           "mengungkapkan Data Pribadi yang bukan miliknya"),
+    (PDP_PDF_SHA256, 19): (
+        ("Pengendali Data Pribadi wajib\npemberitahuan secara tertulis",
+         "Pengendali Data Pribadi wajib menyampaikan\npemberitahuan secara tertulis"),
+        # The text layer emits the three labels after the Article 48 continuation line.
+        (
+            ("ayat (1) minimal memuat:\nData Pribadi yang terungkap;\n"
+             "kapan dan bagaimana Data Pribadi terungkap; dan\nupaya penanganan dan pemulihan atas"),
+            ("ayat (1) minimal memuat:\na. Data Pribadi yang terungkap;\n"
+             "b. kapan dan bagaimana Data Pribadi terungkap; dan\nc. upaya penanganan dan pemulihan atas"),
+        ),
+        ("(2) Pemberitahuan . . .\na.\nb.\nc.\nSK No 155220A",
+         "(2) Pemberitahuan . . .\nSK No 155220A"),
+    ),
+    (PDP_PDF_SHA256, 30): (
+        ("mengunglapkan Data Pribadi yang bukan miliknya", "mengungkapkan Data Pribadi yang bukan miliknya"),
+    ),
 }
 
 
 def correct_text_layer(text: str, digest: str, page_number: int) -> str:
-    reading = TEXT_LAYER_READINGS.get((digest, page_number))
-    if reading is None:
-        return text
-    extracted, printed = reading
-    if text.count(extracted) == 1 and printed not in text:
-        return text.replace(extracted, printed)
-    if extracted not in text and text.count(printed) == 1:
-        return text
-    raise ValueError(f"Periksa kembali teks PDF pada halaman {page_number} sebelum menerapkan koreksi.")
+    for extracted, printed in TEXT_LAYER_READINGS.get((digest, page_number), ()):
+        if text.count(extracted) == 1 and printed not in text:
+            text = text.replace(extracted, printed)
+        elif extracted in text or text.count(printed) != 1:
+            raise ValueError(f"Periksa kembali teks PDF pada halaman {page_number} sebelum menerapkan koreksi.")
+    return text
 
 
 def build(manifest_path: Path, output_path: Path, root: Path) -> int:

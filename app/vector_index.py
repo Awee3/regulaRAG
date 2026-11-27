@@ -30,6 +30,8 @@ class DenseSearchUnavailable(RuntimeError):
 
 
 def index_directory(chunks_path: Path) -> Path:
+    if re.fullmatch(r"generation-[0-9a-f]{32}", chunks_path.parent.name):
+        return chunks_path.resolve().with_name(f"{chunks_path.name}.qdrant")
     override = os.getenv("REGULARAG_QDRANT_PATH")
     if override:
         return Path(override).resolve()

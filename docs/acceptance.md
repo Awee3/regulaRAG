@@ -1,5 +1,15 @@
 # Scope penerimaan terkini
 
+## Impor PDF dari folder — 27 November 2026
+
+Pada salinan lokal yang awalnya hanya berisi UU PDP, aplikasi menerima PDF Putusan MK No. 135/PUU-XXIII/2025 melalui `data/inbox`. Worker mencocokkan PDF dengan salinan resmi. Pencarian dense pada corpus lama tetap mengembalikan cuplikan UU PDP selama indeks baru dibangun. Setelah publikasi, dokumen muncul di pemilih Streamlit. Melalui API, Qwen3 1.7B dengan BM25 dan hybrid mengembalikan amar dengan kutipan yang cocok dengan teks halaman PDF 234. Mengganti nama PDF tidak membuat indeks kedua, dan dokumen tetap tersedia setelah API dibuka kembali. [Sumber resmi putusan](https://jdih.komdigi.go.id/judicial/view/49)
+
+Pemeriksaan langsung atas PDF UU PDP juga berhasil menggunakan halaman peraturan.go.id dan tanggal mulai berlaku dari BPK. Suite lokal lulus 72 tes. Dengan paket dense disembunyikan, 17 tes impor lulus dan satu tes khusus dense dilewati. Regresi mencakup penolakan sumber yang tidak cocok, pemulihan dari kegagalan indeks, serta pembatasan jawaban sebelum tanggal mulai berlaku. Hasil ini merupakan pengujian fungsi aplikasi. [Halaman UU](https://peraturan.go.id/id/uu-no-27-tahun-2022) · [Metadata BPK](https://peraturan.bpk.go.id/Details/229798/uu-no-27-tahun-2022) · [Tes impor](../tests/test_inbox.py)
+
+## Koreksi penanda huruf 24 November 2026
+
+`python -m unittest discover -s tests` lulus 54 tes. Regresi PDF memeriksa bahwa ketiga huruf muncul bersama butir Pasal 46 ayat (2) dan tidak ikut masuk Pasal 48. `python -m ruff check .` dan `python -m pip check` lulus. [Kode ekstraksi](../ingestion/build_corpus.py) · [Tes regresi](../tests/test_regressions.py) · [Perintah build corpus dan indeks](../README.md#mode-retrieval-opsional) · [Pemeriksaan sumber dan corpus](quality_acceptance.md#penanda-huruf-pasal-46-ayat-2)
+
 ## Koreksi kualitas 23 November 2026
 
 Suite lokal lulus 53 tes, termasuk regresi untuk ekstraksi Pasal 46, pemilihan ayat pidana pengungkapan, dan pertanyaan akses serta salinan. Ruff dan `pip check` lulus. BM25 tetap menjadi mode default. [Hasil per kasus untuk BM25 dan hybrid](quality_acceptance.md#koreksi-kutipan-dan-seleksi-bukti)

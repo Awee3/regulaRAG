@@ -30,24 +30,30 @@ DENSE_RRF_WEIGHT = RETRIEVAL["dense_rrf_weight"]
 BM25_RRF_WEIGHT = RETRIEVAL["bm25_rrf_weight"]
 _encoder = None
 _dense_lock = threading.Lock()
+_encoder_creation_lock = threading.Lock()
 
 
 def _load_encoder(device: str = CONFIG["embedding"]["device"]):
     global _encoder
     if _encoder is None:
-        try:
-            from sentence_transformers import SentenceTransformer
-        except ImportError as exc:
-            raise DenseSearchUnavailable(
-                'Dense search needs the optional dependencies. Install with: python -m pip install -e ".[dense]"'
-            ) from exc
-        try:
-            _encoder = SentenceTransformer(EMBEDDING_MODEL, revision=EMBEDDING_REVISION, device=device)
-        except Exception as exc:
-            raise DenseSearchUnavailable(
-                f"Model embedding {EMBEDDING_MODEL} tidak dapat dimuat. Periksa koneksi unduhan atau cache model lokal."
-            ) from exc
+        _encoder = create_encoder(device)
     return _encoder
+
+
+def create_encoder(device: str):
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError as exc:
+        raise DenseSearchUnavailable(
+            'Dense search needs the optional dependencies. Install with: python -m pip install -e ".[dense]"'
+        ) from exc
+    try:
+        with _encoder_creation_lock:
+            return SentenceTransformer(EMBEDDING_MODEL, revision=EMBEDDING_REVISION, device=device)
+    except Exception as exc:
+        raise DenseSearchUnavailable(
+            f"Model embedding {EMBEDDING_MODEL} tidak dapat dimuat. Periksa koneksi unduhan atau cache model lokal."
+        ) from exc
 
 
 def chunks_from_bytes(corpus: bytes) -> list[dict]:

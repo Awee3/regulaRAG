@@ -1,5 +1,13 @@
 # Penerimaan kualitas RegulaRAG
 
+## Penanda huruf Pasal 46 ayat (2)
+
+Pada 24 November 2026, Codex membandingkan gambar halaman 19 dengan urutan teks yang dibaca PyMuPDF. Di gambar, huruf a, b, dan c sejajar dengan ketiga butir Pasal 46 ayat (2). Lapisan teks mengeluarkan ketiga huruf setelah awal Pasal 48 sehingga parser sebelumnya menyimpannya di kutipan Pasal 48. [PDF resmi BPK, halaman 19](https://peraturan.bpk.go.id/Home/Download/224884/UU%20Nomor%2027%20Tahun%202022.pdf#page=19)
+
+Ingestion kini memasangkan huruf dengan butirnya sebelum membagi teks per pasal. Koreksi memeriksa SHA-256 PDF, nomor halaman, teks daftar, dan lokasi asal ketiga huruf. Build berhenti jika susunan berbeda dari pola yang diperiksa. Pada corpus Windows dengan SHA-256 `69fb26d8e87dd6993fe34f3de2b80fe485225b606d0987f6c1da7ff8c55fc7ca`, hanya teks Pasal 46 dan 48 yang berubah. Seluruh 593 ID, halaman, dan URL sumber tetap sama.
+
+Setelah corpus dan indeks Qdrant lokal diaktifkan, pertanyaan “Apa saja isi minimal pemberitahuan tertulis menurut Pasal 46 ayat (2) jika terjadi kegagalan pelindungan data pribadi?” menghasilkan ketiga butir berhuruf dalam jawaban BM25 dan hybrid. Keduanya mengutip `UU_27_2022:article:46` pada halaman 19. Pertanyaan ini dan enam kasus regresi 23 November lulus di kedua mode melalui `POST /query` dengan Qwen3 1.7B (14/14 pemeriksaan jawaban, kutipan, dan abstention). Pemeriksaan sumber dilakukan oleh AI. Validasi manusia masih tertunda.
+
 ## Koreksi kutipan dan seleksi bukti
 
 Pada 23 November 2026, Codex memeriksa gambar halaman 6, 19, dan 30 pada PDF BPK UU 27/2022 yang checksum-nya cocok dengan manifest. Ingestion memulihkan kata **menyampaikan** pada Pasal 46 ayat (1) dan ejaan **mengungkapkan** pada Pasal 67 ayat (2). Setiap koreksi terikat pada SHA-256 berkas, nomor halaman PDF, dan teks di sekelilingnya. PDF sumber serta tanggal verifikasi hukum tetap mengikuti manifest.
@@ -22,7 +30,7 @@ Untuk mengulang kasus tersebut setelah membangun corpus dan indeks, jalankan ked
 .\.venv\Scripts\python.exe -m evaluation.run_answers --mode hybrid --dataset evaluation/dataset/quality_smoke.jsonl --limit 5 --output data/processed/probe-hybrid.jsonl
 ```
 
-Keenam pertanyaan ini merupakan pemeriksaan regresi development dengan review sumber oleh AI. Validasi manusia masih tertunda. Pemeriksaan Q02 mencakup bunyi pemberitahuan pada ayat (1). Pada ayat (2), lapisan teks PDF masih memisahkan penanda huruf a, b, dan c dari butirnya.
+Keenam pertanyaan ini merupakan pemeriksaan regresi development dengan review sumber oleh AI. Validasi manusia masih tertunda. Pada run 23 November, Q02 mencakup bunyi pemberitahuan pada ayat (1). Penanda huruf pada ayat (2) diperbaiki pada 24 November.
 
 ## Migrasi Qdrant Local
 

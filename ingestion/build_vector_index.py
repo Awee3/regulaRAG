@@ -67,7 +67,7 @@ def _activate(directory: Path, name: str) -> None:
     temporary.replace(directory / "active.txt")
 
 
-def build(chunks_path: Path, index_path: Path | None = None) -> str:
+def build(chunks_path: Path, index_path: Path | None = None, *, encoder=None) -> str:
     directory = (index_path or index_directory(chunks_path)).resolve()
     directory.mkdir(parents=True, exist_ok=True)
     models = qdrant_models()
@@ -97,7 +97,7 @@ def build(chunks_path: Path, index_path: Path | None = None) -> str:
             return current
 
         name = f"snapshot-{uuid4().hex}"
-        encoder = search._load_encoder(device="cpu")
+        encoder = encoder or search._load_encoder(device="cpu")
         dimension = encoder.get_sentence_embedding_dimension()
         if not isinstance(dimension, int) or dimension < 1:
             raise ValueError("Dimensi embedding tidak valid.")

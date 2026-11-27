@@ -11,19 +11,41 @@ from app.generation import InvalidModelResponse, generate
 from ingestion import build_corpus
 from ingestion.legal_text import parse_pages
 
+PAGE_19_LAYER = (
+    "Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\n"
+    "Pengendali Data Pribadi wajib\npemberitahuan secara tertulis paling lambat 3 x 24\n"
+    "(tiga kali dua puluh empat) jam kepada:\na. Subjek Data Pribadi; dan\nb. lembaga.\n"
+    "(2) Pemberitahuan tertulis sebagaimana dimaksud pada\nayat (1) minimal memuat:\n"
+    "Data Pribadi yang terungkap;\nkapan dan bagaimana Data Pribadi terungkap; dan\n"
+    "upaya penanganan dan pemulihan atas\nterungkapnya Data Pribadi oleh Pengendali Data\nPribadi.\n"
+    "Pasal 48\n(2) Pemberitahuan . . .\na.\nb.\nc.\nSK No 155220A"
+)
+PRINTED_46_2_LIST = (
+    "a. Data Pribadi yang terungkap;\n"
+    "b. kapan dan bagaimana Data Pribadi terungkap; dan\n"
+    "c. upaya penanganan dan pemulihan atas\nterungkapnya Data Pribadi oleh Pengendali Data\nPribadi."
+)
+
 
 class RegressionTests(unittest.TestCase):
     def test_article_46_reading_is_scoped_to_the_verified_pdf_and_page(self):
         digest = "ed952dea04b87d14ecf037f9f324a65d50b396ddd34fc28ddf9ff014391971f6"
-        layer = ("Pasal 46\n(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi,\n"
-                 "Pengendali Data Pribadi wajib\npemberitahuan secara tertulis")
-        source = layer.replace("wajib\n", "wajib menyampaikan\n")
-        self.assertEqual(build_corpus.correct_text_layer(layer, digest, 19), source)
-        self.assertEqual(build_corpus.correct_text_layer(source, digest, 19), source)
-        self.assertEqual(build_corpus.correct_text_layer(layer, "different-pdf", 19), layer)
-        self.assertEqual(build_corpus.correct_text_layer(layer, digest, 18), layer)
+        result = build_corpus.correct_text_layer(PAGE_19_LAYER, digest, 19)
+        self.assertIn("wajib menyampaikan\npemberitahuan secara tertulis", result)
+        self.assertIn("a. Subjek Data Pribadi; dan\nb. lembaga.", result)
+        self.assertIn("ayat (1) minimal memuat:\n" + PRINTED_46_2_LIST, result)
+        self.assertTrue(result.endswith("(2) Pemberitahuan . . .\nSK No 155220A"))
+        self.assertEqual(build_corpus.correct_text_layer(result, digest, 19), result)
+        self.assertEqual(build_corpus.correct_text_layer(PAGE_19_LAYER, "different-pdf", 19), PAGE_19_LAYER)
+        self.assertEqual(build_corpus.correct_text_layer(PAGE_19_LAYER, digest, 18), PAGE_19_LAYER)
         with self.assertRaises(ValueError):
-            build_corpus.correct_text_layer(layer + "\n" + layer, digest, 19)
+            build_corpus.correct_text_layer(PAGE_19_LAYER + "\n" + PAGE_19_LAYER, digest, 19)
+
+    def test_article_46_rejects_unrecognized_label_layout(self):
+        for changed in (PAGE_19_LAYER.replace("\nb.\nc.\n", "\nb.\nb.\nc.\n"),
+                        PAGE_19_LAYER.replace("kapan dan bagaimana", "bagaimana")):
+            with self.subTest(layer=changed), self.assertRaises(ValueError):
+                build_corpus.correct_text_layer(changed, build_corpus.PDP_PDF_SHA256, 19)
 
     def test_ingestion_puts_the_checked_reading_in_the_citable_chunk(self):
         import pymupdf
@@ -32,19 +54,26 @@ class RegressionTests(unittest.TestCase):
             root = Path(tmp)
             with pymupdf.open() as pdf:
                 page = pdf.new_page()
-                page.insert_text((40, 40), "Pasal 46\nPengendali Data Pribadi wajib\npemberitahuan secara tertulis")
+                body, footer = PAGE_19_LAYER.split("\na.\nb.\nc.\n")
+                page.insert_text((60, 40), body, fontsize=10, lineheight=1.5)
+                first_item_y = 40 + 15 * body.splitlines().index("Data Pribadi yang terungkap;")
+                page.insert_text((45, first_item_y), "a.\nb.\nc.", fontsize=10, lineheight=1.5)
+                page.insert_text((40, 420), footer, fontsize=10)
+                self.assertEqual(page.get_text("text").strip(), PAGE_19_LAYER)
                 pdf.save(root / "fixture.pdf")
             digest = hashlib.sha256((root / "fixture.pdf").read_bytes()).hexdigest()
             doc = {"document_id": "fixture", "sha256": digest, "local_path": "fixture.pdf", "status": "verified",
                    "corpus_eligible": True, "official_source_url": "https://official.test", "source_kind": "regulation_full_text"}
             manifest, output = root / "manifest.jsonl", root / "chunks.jsonl"
             manifest.write_text(json.dumps(doc), encoding="utf-8")
-            rule = build_corpus.TEXT_LAYER_READINGS[build_corpus.PDP_PDF_SHA256, 19]
-            with patch.dict(build_corpus.TEXT_LAYER_READINGS, {(digest, 1): rule}):
-                self.assertEqual(build_corpus.build(manifest, output, root), 1)
-            chunk = json.loads(output.read_text(encoding="utf-8"))
+            readings = build_corpus.TEXT_LAYER_READINGS[build_corpus.PDP_PDF_SHA256, 19]
+            with patch.dict(build_corpus.TEXT_LAYER_READINGS, {(digest, 1): readings}):
+                self.assertEqual(build_corpus.build(manifest, output, root), 2)
+            chunk, following = map(json.loads, output.read_bytes().splitlines())
             self.assertEqual((chunk["chunk_id"], chunk["page_start"], chunk["page_end"]), ("fixture:article:46", 1, 1))
             self.assertIn("wajib menyampaikan\npemberitahuan secara tertulis", chunk["text"])
+            self.assertIn(PRINTED_46_2_LIST, chunk["text"])
+            self.assertEqual(following["text"], "Pasal 48\n(2) Pemberitahuan . . .\nSK No 155220A")
 
     def test_disclosure_penalty_offers_only_the_matching_source_paragraph(self):
         question = "Berapa lama ancaman penjara untuk pengungkapan data pribadi milik orang lain?"

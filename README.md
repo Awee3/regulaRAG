@@ -48,6 +48,25 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/query -ContentType 'ap
 
 Gunakan satu proses aplikasi untuk menghindari duplikasi model. LLM menggunakan pengaturan GPU/offloading otomatis Ollama (`generation.num_gpu: null`). Ini tidak menjamin seluruh layer berada di GPU; embedding dan reranker tetap dapat memakai CPU. Perbaikan kompatibilitas GPU dan benchmark resource tidak termasuk scope. Jika `.env` atau environment masih memuat `OLLAMA_NUM_GPU=0`, hapus override tersebut untuk memakai auto. Untuk jalur CPU alternatif, gunakan nilai `0`. Restart proses setelah mengubah konfigurasi. Jangan menganggap service lama dari folder lain memakai kode terbaru.
 
+## Menambah PDF melalui folder
+
+1. Salin naskah PDF resmi yang mempunyai teks ke `data/inbox` (pada workspace ini: `D:\regulaRAG\data\inbox`). Nama file bebas. File sementara dengan ekstensi selain `.pdf` diabaikan; tunggu penyalinan selesai.
+2. Jalankan UI atau API seperti biasa. Worker lokal memindai saat aplikasi berjalan, termasuk file yang ditaruh sebelum aplikasi dibuka. Tidak ada service yang perlu dipasang. Jika UI dan API dibuka bersamaan, hanya satu worker memperoleh kunci impor.
+3. Buka panel **Impor PDF**. Untuk dokumen baru, isi **halaman detail resmi**, lalu **Periksa sumber**. Jika tautan PDF tidak ditemukan otomatis, isi tautan PDF resmi langsung. Jika metadata tanggal/status kurang lengkap, isi halaman metadata resmi tambahan untuk identitas dokumen yang sama. Anda tidak perlu mengedit JSON/checksum atau mendaftarkan dokumen lebih dahulu.
+4. Tunggu status `ready`. Daftar dokumen UI diperbarui otomatis dan kueri berikutnya memakai corpus baru. Status `checking_source` dan `indexing` berarti pemeriksaan/build masih berjalan; corpus sebelumnya tetap tersedia.
+
+Sumber diunduh hanya dari HTTPS publik pada portal BPK, peraturan.go.id, JDIH Setneg, JDIH Komdigi, serta situs/JDIH/server PDF MK yang diizinkan. Semua redirect diperiksa. PDF lokal dan pertanyaan tidak dikirim ke portal. SHA-256 harus cocok dengan **seluruh naskah PDF resmi**, termasuk jika nama lokal diubah. File yang sudah aktif dikenali dari isinya dan tidak diindeks ulang.
+
+Identitas, jenis, judul dan tanggal/status harus terbaca dari naskah dan metadata resmi. Pengenalan otomatis saat ini mendukung UU, PP, Perpres dan putusan MK; layout/jenis lain mendapat alasan `needs_metadata`, bukan izin berdasarkan isian pengguna. Rancangan/berita, sumber tidak tersedia, metadata ambigu, PDF berbeda, rusak/terenkripsi, dan scan tanpa text layer tidak masuk pencarian. `needs_source` meminta tautan, `needs_metadata` meminta metadata resmi yang lebih spesifik, `mismatch` meminta file/halaman yang cocok, dan `needs_ocr` meminta naskah dengan teks. Setelah memperbaiki sumber, kirim lagi untuk mencoba ulang. OCR otomatis dan penafsiran efek hukum putusan belum tersedia. Relasi sumber yang baru ditemukan dicatat tanpa mengubah relasi pasal/amar lama yang sudah diperiksa.
+
+Corpus, registry verifikasi dan indeks dense (bila corpus sebelumnya memilikinya) dibangun dalam folder versi tersendiri di `data/processed/imports`. Satu penunjuk atomik mengaktifkan versi lengkap. Build gagal/terputus mempertahankan versi sebelumnya; pekerjaan yang terputus dilanjutkan saat aplikasi berjalan kembali. Instalasi BM25 tidak memerlukan paket dense. Jika indeks dense sudah digunakan, dependensi/model E5 harus tersedia agar versi baru dapat diterbitkan. Qdrant Local tetap membatasi satu proses pembaca per direktori; gunakan satu UI atau API untuk kueri dense. Versi lama disimpan untuk pemulihan dan memakai ruang disk tambahan.
+
+API impor: `GET /imports` menampilkan pekerjaan dan SHA-256. Kirim `POST /imports/{sha256}/source` dengan JSON `{"page_url":"https://...","pdf_url":null,"metadata_url":null}`. Endpoint hanya menerima URL, bukan status/metadata hukum buatan klien. Kesalahan validasi mengembalikan 422; ID yang belum ditemukan 404; 202 berarti masuk antrean, belum terverifikasi. API tetap dijalankan pada localhost.
+
+Registry sumber awal tetap disimpan di `data/manifest.jsonl`; impor tidak menimpanya. Perubahan izin/pencabutan pada registry awal tetap dipakai untuk filter aplikasi. CLI build/evaluasi dengan path default masih mengacu corpus awal; untuk memeriksa versi impor, gunakan path `manifest.jsonl`/`chunks.jsonl` pada folder `generation-*` yang disebut `data/processed/imports/active.txt`. Jangan menjalankan builder manual pada versi yang sedang dipakai aplikasi. Status verifikasi menyatakan pemeriksaan sumber pada waktu tercatat, bukan jaminan corpus lengkap atau pemantauan perubahan hukum setelahnya.
+
+Jika tanggal mulai berlaku masih di masa depan, UI menampilkan tanggalnya. Aplikasi baru menggunakan dokumen itu untuk menjawab setelah tanggal mulai berlaku tercapai.
+
 ## Cara kerja dan batas akurasi
 
 1. Manifest mengizinkan hanya dokumen aktif terverifikasi dan checksum yang cocok.
@@ -71,7 +90,7 @@ BM25 dapat langsung digunakan setelah corpus dibangun. Untuk mode dense, hybrid,
 
 Builder menghitung embedding passage di CPU dan menyimpan snapshot di `data/processed/qdrant/`. Setelah restart, kueri dense menghitung embedding pertanyaan dan mengambil teks citation dari corpus. Unduhan awal bobot E5 terjadi saat build jika cache kosong. Reranker ONNX diunduh saat pertama dipilih. Model retrieval dilepas sebelum generation.
 
-Jika memakai corpus dari migrasi 18 November 2026, ulangi kedua perintah build di atas setelah memperbarui kode. Koreksi teks Pasal 46 dan 67 mengubah checksum corpus serta indeks dense yang cocok.
+Jika corpus dibuat sebelum koreksi 24 November 2026, bangun ulang corpus untuk memperoleh koreksi teks Pasal 46 dan 67, termasuk penanda a, b, dan c pada butir Pasal 46 ayat (2). Jika memakai dense, hybrid, atau hybrid dengan reranker, bangun ulang juga indeks Qdrant. [Pemeriksaan halaman sumber](docs/quality_acceptance.md#penanda-huruf-pasal-46-ayat-2)
 
 Mulai kembali UI atau API setelah build. Jalankan satu proses pembaca untuk setiap direktori Qdrant Local. Tutup proses itu sebelum memakai CLI dense, evaluator atau builder pada direktori yang sama. `GET /health` melaporkan kesiapan corpus pada `index_ready` dan kesiapan indeks Qdrant pada `dense_index_ready`. Health dapat membuka indeks tanpa memuat model E5.
 

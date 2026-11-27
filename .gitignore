@@ -4,6 +4,8 @@ __pycache__/
 .venv/
 data/raw/*
 !data/raw/.gitkeep
+data/inbox/*
+!data/inbox/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
 

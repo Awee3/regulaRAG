@@ -5,6 +5,7 @@ from __future__ import annotations
 import gc
 import json
 from contextlib import asynccontextmanager
+from datetime import date
 from pathlib import Path
 from typing import Literal
 from urllib.error import URLError
@@ -14,6 +15,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from app.config import CONFIG
+from app.corpus import paths, read_registry
 from app.evidence import include_holdings, select_evidence
 from app.generation import (
     OLLAMA_MODEL,
@@ -29,6 +31,7 @@ from app.vector_index import (
     close_vector_indexes,
     dense_index_ready,
 )
+from ingestion.inbox import IMPORTER
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / CONFIG["storage"]["manifest_path"]
@@ -38,9 +41,11 @@ DISCLAIMER = "Informasi ini merupakan alat bantu penelusuran dokumen, bukan nasi
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    IMPORTER.start()
     try:
         yield
     finally:
+        IMPORTER.stop()
         close_vector_indexes()
 
 
@@ -54,20 +59,29 @@ class QueryRequest(BaseModel):
     document_ids: list[str] | None = Field(default=None, max_length=20)
 
 
-def documents() -> list[dict]:
-    return [json.loads(line) for line in MANIFEST.read_text(encoding="utf-8").splitlines() if line.strip()]
+def documents(manifest: Path | None = None) -> list[dict]:
+    if manifest is None:
+        manifest, _ = paths(MANIFEST, CHUNKS)
+    records = read_registry(manifest, MANIFEST)
+    today = date.today().isoformat()
+    for doc in records:
+        doc["not_yet_effective"] = (doc.get("effective_from") or "") > today
+        if doc["not_yet_effective"]:
+            doc["corpus_eligible"] = False
+    return records
 
 
 @app.get("/health")
 def health() -> dict:
+    _, chunks = paths(MANIFEST, CHUNKS)
     try:
         with urlopen(OLLAMA_URL.rsplit("/", 1)[0] + "/tags", timeout=1) as response:
             installed = {item["name"] for item in json.load(response).get("models", [])}
         model_ready = any(name == OLLAMA_MODEL or name.startswith(OLLAMA_MODEL + "-") for name in installed)
     except (URLError, TimeoutError, OSError, json.JSONDecodeError, KeyError, TypeError):
         model_ready = False
-    return {"status": "ok", "index_ready": CHUNKS.is_file() and CHUNKS.stat().st_size > 0,
-            "dense_index_ready": dense_index_ready(CHUNKS),
+    return {"status": "ok", "index_ready": chunks.is_file() and chunks.stat().st_size > 0,
+            "dense_index_ready": dense_index_ready(chunks),
             "generator": "ollama", "model": OLLAMA_MODEL, "model_ready": model_ready,
             "corpus_verified_at_utc": max((d.get("artifact_verified_at_utc", d.get("verified_at_utc", "")) for d in documents()), default=None)}
 
@@ -75,8 +89,31 @@ def health() -> dict:
 @app.get("/documents")
 def get_documents() -> list[dict]:
     fields = ("document_id", "title", "document_type", "number", "year", "official_source_url",
-              "effective_from", "status", "corpus_eligible", "related_document_ids")
+              "effective_from", "not_yet_effective", "status", "corpus_eligible", "related_document_ids")
     return [{key: doc.get(key) for key in fields} for doc in documents()]
+
+
+class ImportSourceRequest(BaseModel):
+    model_config = {"extra": "forbid"}
+    page_url: str = Field(min_length=8, max_length=2048)
+    pdf_url: str | None = Field(default=None, max_length=2048)
+    metadata_url: str | None = Field(default=None, max_length=2048)
+
+
+@app.get("/imports")
+def get_imports() -> list[dict]:
+    return IMPORTER.jobs()
+
+
+@app.post("/imports/{digest}/source", status_code=202)
+def set_import_source(digest: str, request: ImportSourceRequest) -> dict:
+    try:
+        IMPORTER.submit_source(digest, request.model_dump())
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {"status": "queued", "message": "Sumber diterima untuk diperiksa worker lokal."}
 
 
 def citation_records(hits: list[dict], docs: dict[str, dict], references: list[str] | None = None) -> list[dict]:
@@ -95,7 +132,8 @@ def citation_records(hits: list[dict], docs: dict[str, dict], references: list[s
 def query(request: QueryRequest) -> dict:
     if not request.question.strip():
         raise HTTPException(status_code=422, detail="question wajib berisi teks.")
-    registry = {doc["document_id"]: doc for doc in documents()}
+    manifest, chunks_path = paths(MANIFEST, CHUNKS)
+    registry = {doc["document_id"]: doc for doc in documents(manifest)}
     active_ids = {doc_id for doc_id, doc in registry.items() if doc.get("corpus_eligible") and doc.get("status") == "verified"}
     if request.document_ids is not None:
         requested = set(request.document_ids)
@@ -105,8 +143,8 @@ def query(request: QueryRequest) -> dict:
     try:
         candidate_k = CONFIG["reranker"]["candidate_top_k"]
         mode = "hybrid" if request.retrieval_mode == "hybrid_rerank" else request.retrieval_mode
-        corpus = CHUNKS.read_bytes()
-        hits = search(request.question, CHUNKS, candidate_k, active_ids,
+        corpus = chunks_path.read_bytes()
+        hits = search(request.question, chunks_path, candidate_k, active_ids,
                       retrieval_mode=mode, normative_only=True, corpus_bytes=corpus)
         if request.retrieval_mode == "hybrid_rerank" and hits:
             release_encoder()

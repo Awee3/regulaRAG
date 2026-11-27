@@ -5,13 +5,59 @@ from __future__ import annotations
 import streamlit as st
 from fastapi import HTTPException
 
-from app.main import DISCLAIMER, QueryRequest, documents, query
+from app.main import (
+    DISCLAIMER,
+    IMPORTER,
+    ImportSourceRequest,
+    QueryRequest,
+    documents,
+    get_imports,
+    query,
+    set_import_source,
+)
 
 st.set_page_config(page_title="RegulaRAG Indonesia", page_icon="📚", layout="wide")
 st.title("RegulaRAG Indonesia")
 st.caption("Pencarian dokumen Pelindungan Data Pribadi berbasis sumber lokal.")
+IMPORTER.start()
+
+
+@st.fragment(run_every="3s")
+def inbox_panel():
+    with st.expander("Impor PDF dari folder data/inbox", expanded=True):
+        st.caption("Salin PDF resmi yang dapat dicari ke data/inbox. Pemindaian berjalan selama UI/API terbuka dan dilanjutkan pada peluncuran berikutnya. Hanya tautan sumber resmi yang diunduh; file lokal tidak diunggah.")
+        jobs = get_imports()
+        ready = tuple((job["sha256"], job.get("document_id")) for job in jobs if job["status"] == "ready")
+        previous = st.session_state.get("inbox_ready")
+        st.session_state["inbox_ready"] = ready
+        if previous is not None and previous != ready:
+            st.rerun()
+        if not jobs:
+            st.info("Menunggu PDF selesai disalin ke data/inbox…")
+        for job in jobs:
+            st.write(" · ".join(job["filenames"]))
+            st.caption(f"{job['status']}: {job['message']}")
+            if job["status"] not in {"ready", "checking_source", "indexing"}:
+                with st.form(f"source-{job['sha256']}"):
+                    page_url = st.text_input("Halaman detail resmi", key=f"page-{job['sha256']}")
+                    pdf_url = st.text_input("Tautan PDF resmi langsung (opsional)", key=f"pdf-{job['sha256']}")
+                    metadata_url = st.text_input("Halaman metadata resmi tambahan (opsional)", key=f"meta-{job['sha256']}")
+                    if st.form_submit_button("Periksa sumber / coba lagi"):
+                        try:
+                            set_import_source(job["sha256"], ImportSourceRequest(page_url=page_url, pdf_url=pdf_url or None, metadata_url=metadata_url or None))
+                            st.success("Sumber masuk antrean pemeriksaan.")
+                        except (HTTPException, ValueError) as exc:
+                            st.error(getattr(exc, "detail", str(exc)))
+        if st.button("Perbarui daftar dokumen"):
+            st.rerun()
+
+
+inbox_panel()
 
 all_documents = documents()
+for doc in all_documents:
+    if doc["not_yet_effective"]:
+        st.caption(f"{doc['title']} belum berlaku. Mulai berlaku pada {doc['effective_from']}.")
 eligible_documents = [doc for doc in all_documents if doc.get("corpus_eligible")]
 verified_at = max((doc.get("artifact_verified_at_utc") or doc.get("verified_at_utc") or "" for doc in all_documents), default="")
 st.info(f"Corpus berisi {len(eligible_documents)} dokumen aktif. Verifikasi corpus terakhir tercatat: {verified_at or 'tidak tersedia'}.")
